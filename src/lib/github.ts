@@ -1,16 +1,16 @@
 /**
  * Build-time GitHub metadata.
  *
- * This runs once per build, not once per visitor: the numbers are baked
- * into the HTML, so the page needs no JavaScript and can't show an empty
- * table while a fetch is in flight. A scheduled rebuild keeps it current
- * (see .github/workflows/deploy.yml).
+ * This runs once per build, not once per visitor: the numbers are baked into
+ * the HTML, so the page needs no JavaScript to show them and — the reason it
+ * matters here — a visitor's browser never talks to GitHub at all.
+ * A scheduled rebuild keeps it current (see .github/workflows/deploy.yml).
  *
- * Every failure path here is non-fatal. A rate limit or an offline build
- * machine costs you the metadata column, not the deploy.
+ * Every failure path is non-fatal. A rate limit or an offline build machine
+ * costs the metadata column, not the deploy.
  */
 
-import { site } from "~/data/site";
+import { profile, type Locale } from "~/i18n/content";
 
 export interface RepoStats {
   stars: number;
@@ -32,8 +32,8 @@ interface GitHubRepo {
 let cache: Map<string, RepoStats> | null = null;
 
 export async function fetchRepoStats(): Promise<Map<string, RepoStats>> {
-  // Astro renders pages in parallel; without this the same request goes
-  // out once per page and burns the unauthenticated rate limit faster.
+  // Astro renders pages in parallel; without this the same request goes out
+  // once per page and burns the unauthenticated rate limit faster.
   if (cache) return cache;
 
   const stats = new Map<string, RepoStats>();
@@ -41,7 +41,7 @@ export async function fetchRepoStats(): Promise<Map<string, RepoStats>> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": `${site.domain}-build`,
+    "User-Agent": `${profile.domain}-build`,
   };
 
   // Set in CI automatically; raises the limit from 60/hr to 5000/hr.
@@ -50,14 +50,12 @@ export async function fetchRepoStats(): Promise<Map<string, RepoStats>> {
 
   try {
     const res = await fetch(
-      `https://api.github.com/users/${site.handle}/repos?per_page=100&sort=updated`,
+      `https://api.github.com/users/${profile.handle}/repos?per_page=100&sort=updated`,
       { headers, signal: AbortSignal.timeout(10_000) },
     );
 
     if (!res.ok) {
-      console.warn(
-        `[github] ${res.status} ${res.statusText} — building without live repo metadata.`,
-      );
+      console.warn(`[github] ${res.status} ${res.statusText} — building without repo metadata.`);
       cache = stats;
       return stats;
     }
@@ -75,7 +73,7 @@ export async function fetchRepoStats(): Promise<Map<string, RepoStats>> {
     console.log(`[github] loaded metadata for ${stats.size} repos`);
   } catch (error) {
     console.warn(
-      `[github] ${error instanceof Error ? error.message : error} — building without live repo metadata.`,
+      `[github] ${error instanceof Error ? error.message : error} — building without repo metadata.`,
     );
   }
 
@@ -83,12 +81,12 @@ export async function fetchRepoStats(): Promise<Map<string, RepoStats>> {
   return stats;
 }
 
-/** "Feb 2026" — short enough for a table column, precise enough to be useful. */
-export function formatMonth(iso: string | null | undefined): string | null {
+/** "Feb 2026" / "Feb. 2026" — short enough for a column, precise enough to be useful. */
+export function formatMonth(iso: string | null | undefined, locale: Locale): string | null {
   if (!iso) return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(locale === "de" ? "de-DE" : "en-GB", {
     month: "short",
     year: "numeric",
     timeZone: "UTC",

@@ -1,6 +1,6 @@
 /* Latin subsets only, and only the two weights actually used. The full
    fontsource entrypoints also ship Cyrillic and Vietnamese, which this site
-   has no use for. Latin covers ä/ö/ü/ß, so German copy is safe. */
+   has no use for. Latin covers ä/ö/ü/ß, so the German copy is safe. */
 @import "@fontsource/instrument-serif/latin-400.css";
 @import "@fontsource/ibm-plex-mono/latin-400.css";
 @import "@fontsource/ibm-plex-mono/latin-500.css";
@@ -9,18 +9,28 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-  Two surfaces only: paper and ink, plus one signal colour.
-  Warm neutrals throughout — nothing here is a pure grey, which is
-  what keeps it from reading as a default Tailwind palette.
+  Paper, ink, and one accent that rerolls on every page load.
+
+  The accent is stored as two custom properties — one tuned for each theme —
+  which an inline script in <head> overwrites before first paint. `--accent`
+  then just points at whichever the current theme needs, so toggling the
+  theme picks up the right variant with no extra JavaScript.
+
+  Values below are the fallback for a visitor with JavaScript disabled.
+  All six palette entries clear 4.5:1 against their background in both
+  themes, and sit at one lightness so only the hue changes between loads.
 */
 :root {
+  --accent-light: oklch(0.52 0.09 38);
+  --accent-dark: oklch(0.745 0.1 38);
+
   --background: oklch(0.982 0.006 85);
   --foreground: oklch(0.22 0.012 60);
 
   --muted: oklch(0.955 0.008 82);
   --muted-foreground: oklch(0.46 0.012 65);
 
-  --card: oklch(0.982 0.006 85);
+  --card: var(--background);
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
@@ -30,11 +40,8 @@
   --secondary: var(--muted);
   --secondary-foreground: var(--foreground);
 
-  /* Vermillion. In a Vertretungsplan this is the colour of a cancelled
-     lesson, which is the only reason it is this specific red. */
-  --accent: oklch(0.56 0.17 38);
+  --accent: var(--accent-light);
   --accent-foreground: oklch(0.982 0.006 85);
-  --accent-strong: oklch(0.5 0.17 38);
 
   --destructive: oklch(0.56 0.19 27);
   --destructive-foreground: oklch(0.982 0.006 85);
@@ -54,27 +61,17 @@
   --muted: oklch(0.22 0.007 70);
   --muted-foreground: oklch(0.63 0.01 72);
 
-  --card: oklch(0.17 0.006 70);
-  --card-foreground: var(--foreground);
-  --popover: var(--card);
-  --popover-foreground: var(--foreground);
-
   --primary: oklch(0.92 0.008 80);
   --primary-foreground: oklch(0.17 0.006 70);
-  --secondary: var(--muted);
-  --secondary-foreground: var(--foreground);
 
-  --accent: oklch(0.71 0.16 44);
+  --accent: var(--accent-dark);
   --accent-foreground: oklch(0.17 0.006 70);
-  --accent-strong: oklch(0.76 0.15 46);
 
   --destructive: oklch(0.65 0.18 27);
   --destructive-foreground: oklch(0.17 0.006 70);
 
   --border: oklch(0.29 0.008 70);
   --rule: oklch(0.33 0.009 70);
-  --input: var(--border);
-  --ring: var(--accent);
 }
 
 @theme inline {
@@ -92,7 +89,6 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-accent-strong: var(--accent-strong);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -117,6 +113,8 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    /* Anchored sections shouldn't hide under the sticky header. */
+    scroll-padding-top: 5rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -141,7 +139,7 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Instrument Serif only ships a 400, so never let a browser fake-bold it. */
+  /* Instrument Serif ships a single weight — never let a browser fake-bold it. */
   .font-display {
     font-weight: 400;
     letter-spacing: -0.015em;
@@ -167,8 +165,22 @@
   color: var(--muted-foreground);
 }
 
-/* The hairline that carries the whole layout. Thinner than 1px where
-   the display can manage it. */
-@utility rule-t {
-  border-top: 1px solid var(--rule);
+/* T, J, H — the initials that explain the domain. */
+@utility initial {
+  color: var(--accent);
+  transition: color 0.2s ease;
+}
+
+@utility link-underline {
+  text-decoration-line: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 4px;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
+
+  &:hover {
+    color: var(--accent);
+    text-decoration-color: var(--accent);
+  }
 }

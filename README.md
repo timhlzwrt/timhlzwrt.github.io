@@ -1,7 +1,7 @@
 # tjh.li
 
-Personal site. Astro, static output, deployed to GitHub Pages at
-[me.tjh.li](https://me.tjh.li).
+Personal site for Tim Jonas Holzwarth. Astro, static output, bilingual
+(English / German), deployed to GitHub Pages at [me.tjh.li](https://me.tjh.li).
 
 ## Running it
 
@@ -15,68 +15,88 @@ npm run check    # types + templates
 
 ## Editing it
 
-Almost everything you'll want to change lives in two files:
+| File                   | What's in it                                                 |
+| ---------------------- | ------------------------------------------------------------ |
+| `src/i18n/content.ts`  | **All page copy, both languages.** This is the main one.       |
+| `src/data/projects.ts` | The work section — one entry per project, blurbs per language |
+| `src/layouts/Base.astro` | Head, header, footer, and the pre-paint inline script       |
 
-| File                   | What's in it                                            |
-| ---------------------- | ------------------------------------------------------- |
-| `src/data/site.ts`     | Name, contact, the one-paragraph intro, social links     |
-| `src/data/projects.ts` | The index — one entry per project, with your description |
+`content.ts` holds `en` and `de` objects typed against the same interface,
+so if you add a key to one and forget the other, `npm run check` fails
+rather than silently shipping a missing string.
 
-Project descriptions and status are hand-written. Language, last-touched
-date and star counts are read from the GitHub API **at build time** and
-baked into the HTML, so they can't go stale in the source and the page
-needs no JavaScript to show them. A nightly GitHub Action rebuild keeps
-them current.
+Project descriptions are hand-written. Language, last-touched date and star
+counts are read from the GitHub API **at build time** and baked into the
+HTML — so they can't go stale in the source, and a visitor's browser never
+contacts GitHub. A nightly Actions rebuild keeps them current. If the API
+call fails, the build succeeds and those columns are simply omitted.
 
-If the API call fails — rate limit, no network — the build still succeeds
-and those columns are simply omitted.
+## Languages
 
-Longer prose lives directly in `src/pages/about.astro`.
+English is at `/`, German at `/de/`. Both are fully static and crawlable,
+cross-linked with `hreflang` tags.
+
+Detection uses `navigator.language`, not IP geolocation — no third-party
+lookup, no network request, and correct for a German speaker abroad. It only
+ever redirects `/` → `/de/`, only when the browser prefers German *ahead of*
+English, and never once the visitor has used the switcher (the choice is
+kept in `localStorage`).
+
+The logic has a test at `/tmp`-style granularity worth re-running if you
+touch it — the ordering rule in particular is easy to get wrong.
+
+## The accent colour
+
+Rerolls on every page load from six muted hues, set by the inline script in
+`Base.astro` before first paint. Each hue has a light- and dark-theme
+variant; all twelve were checked to clear 4.5:1 contrast against their
+background, and they share one lightness so only the hue shifts between
+loads — the page never looks heavier or lighter, just differently tinted.
+
+The T, J and H of the name are tinted with it, which is the whole reason the
+domain is `tjh.li`.
+
+Change the palette in two places, kept deliberately in sync:
+
+- `Base.astro` — the `palette` array in the inline script (what actually runs)
+- `global.css` — `--accent-light` / `--accent-dark` (the no-JavaScript fallback)
 
 ## Design
 
-Two typefaces, self-hosted, Latin subsets only: Instrument Serif for
-display, IBM Plex Mono for everything else. Colour is a warm paper/ink
-pair plus a single vermillion accent.
+Instrument Serif for display, IBM Plex Mono for everything else. Self-hosted,
+Latin subsets only, two weights. Warm paper and ink.
 
-Tokens are in `src/styles/global.css`, named to shadcn/ui's convention
-(`--background`, `--foreground`, `--muted-foreground`, `--accent`, …).
-Nothing here depends on shadcn, but if you ever run `npx shadcn init`
-the components will pick up this palette instead of the default one.
+Tokens in `src/styles/global.css` follow shadcn/ui naming (`--background`,
+`--foreground`, `--muted-foreground`, `--accent`, …). Nothing depends on
+shadcn, but `npx shadcn init` would inherit this palette rather than the
+default one.
 
 ## Deploying
 
 Pushes to `main` build and deploy via `.github/workflows/deploy.yml`.
 
-> **One-time setup:** in the repo's *Settings → Pages*, set **Source** to
-> **GitHub Actions**. This repo previously deployed straight from the
-> branch root; that mode serves the source files rather than the build.
-> After switching, check that the custom domain is still set to
-> `me.tjh.li` and that *Enforce HTTPS* is ticked — changing the source
-> can clear the domain field.
-
 ### GitHub Pages specifics
 
-Things the host imposes that this repo already accounts for:
+Things the host imposes that this repo accounts for:
 
-- **`public/CNAME`** — the custom domain has to be part of the build
-  output, not just the branch root, or it's lost on every deploy.
+- **`public/CNAME`** — the custom domain must be in the build output, not
+  just the branch root, or it's dropped on every deploy.
 - **`public/.nojekyll`** — Jekyll ignores paths beginning with `_`, which
-  would strip Astro's entire `_astro/` CSS and font directory. The Actions
-  deploy doesn't run Jekyll, so this is only insurance against a future
-  switch back to branch-based deploys, but it costs nothing.
-- **`src/pages/404.astro`** — Pages serves a top-level `404.html` for any
-  unmatched path, custom domains included.
-- **`trailingSlash: "always"`** — Pages serves `about/index.html` at
-  `/about/` and 301-redirects `/about` to it. Being explicit keeps the
-  nav, canonicals and sitemap from disagreeing or bouncing through a
-  redirect.
+  would strip Astro's entire `_astro/` CSS and font directory.
+- **`src/pages/404.astro`** — Pages serves one top-level `404.html` for every
+  unmatched path, so it can't know which language was wanted. It shows both.
+- **`trailingSlash: "always"`** — Pages serves `de/index.html` at `/de/` and
+  301-redirects `/de` to it.
 
-Pages can't set response headers, so there's no custom caching policy and
-no CSP. Nothing here needs either — the site is static files with no
-third-party requests at runtime.
+Pages can't set response headers, so there's no custom caching policy and no
+CSP. Nothing here needs either — static files, zero third-party requests.
 
 > **Note:** GitHub disables scheduled workflows after 60 days without
-> repository activity. If the nightly rebuild stops and the index dates
-> go stale, re-enable it from the Actions tab — or just run the workflow
-> manually, it has `workflow_dispatch`.
+> repository activity. If the nightly rebuild stops and the dates go stale,
+> re-enable it from the Actions tab, or run it manually via `workflow_dispatch`.
+
+> **Pages source:** must stay on *GitHub Actions* (Settings → Pages).
+> `actions/configure-pages` enables Pages when it's off but will **not**
+> convert a branch-deploy repo — that needs `build_type=workflow` set on the
+> Pages API. Changing the source can also clear the custom domain, so check
+> `me.tjh.li` is still there afterwards.

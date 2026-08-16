@@ -1,0 +1,119 @@
+---
+import Section from "~/components/Section.astro";
+import ProjectRow from "~/components/ProjectRow.astro";
+import { projects } from "~/data/projects";
+import { content, NAME_PARTS, type Locale } from "~/i18n/content";
+import { fetchRepoStats } from "~/lib/github";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = content[locale];
+const stats = await fetchRepoStats();
+---
+
+{/* ---------------------------------------------------------------- hero */}
+<section class="pb-4 pt-20 sm:pt-28">
+  <h1
+    class="font-display text-[clamp(2.5rem,9.5vw,5rem)] leading-[0.95] tracking-tight"
+  >
+    {
+      NAME_PARTS.map((part, i) => (
+        <span class="whitespace-nowrap">
+          <span class="initial">{part.initial}</span>{part.rest}{i < NAME_PARTS.length - 1 ? " " : ""}
+        </span>
+      ))
+    }
+  </h1>
+
+  <p class="mt-7 max-w-[52ch] text-[0.9375rem] leading-relaxed">
+    <span class="font-medium">{t.hero.role}</span><br />
+    <span class="text-muted-foreground">{t.hero.employer}</span>
+  </p>
+
+  <p class="mt-6 max-w-[54ch] text-[0.9375rem] leading-relaxed text-muted-foreground">
+    {t.hero.lede}
+  </p>
+</section>
+
+{/* --------------------------------------------------------------- about */}
+<Section id="about" heading={t.about.heading}>
+  <div class="mt-6 max-w-[62ch] space-y-5 text-[0.875rem] leading-[1.75]">
+    {t.about.body.map((paragraph) => <p>{paragraph}</p>)}
+  </div>
+</Section>
+
+{/* --------------------------------------------------------------- tools */}
+<Section id="tools" heading={t.skills.heading}>
+  <dl class="mt-1">
+    {
+      t.skills.groups.map((group) => (
+        <div class="grid grid-cols-[6rem_1fr] gap-x-4 border-b border-rule py-4 sm:grid-cols-[9rem_1fr]">
+          <dt class="label pt-[0.2rem]">{group.label}</dt>
+          <dd class="flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem]">
+            {group.items.map((item) => (
+              <span>{item}</span>
+            ))}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+  <p class="mt-4 text-xs text-muted-foreground">{t.skills.note}</p>
+</Section>
+
+{/* ------------------------------------------------------------- privacy */}
+<Section id="privacy" heading={t.privacy.heading}>
+  <div class="mt-6 max-w-[62ch] space-y-5 text-[0.875rem] leading-[1.75]">
+    {t.privacy.body.map((paragraph) => <p>{paragraph}</p>)}
+  </div>
+
+  {/* The claims above, stated as a table you can check against the network tab. */}
+  <dl class="mt-8">
+    {
+      t.privacy.facts.map(([term, value]) => (
+        <div class="grid grid-cols-[9rem_1fr] gap-x-4 border-b border-rule py-3 text-[0.8125rem] sm:grid-cols-[12rem_1fr]">
+          <dt class="label pt-[0.2rem]">{term}</dt>
+          <dd class="text-accent">{value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</Section>
+
+{/* ---------------------------------------------------------------- work */}
+<Section id="work" heading={t.work.heading} aside={t.ui.entries(projects.length)}>
+  <p class="mt-4 text-xs text-muted-foreground">{t.work.note}</p>
+  <div class="mt-4">
+    {
+      projects.map((project, index) => (
+        <ProjectRow
+          project={project}
+          stats={stats.get(project.repo)}
+          index={index}
+          locale={locale}
+        />
+      ))
+    }
+    <div class="border-t border-rule"></div>
+  </div>
+</Section>
+
+{/* ------------------------------------------------------------- contact */}
+<Section id="contact" heading={t.contact.heading}>
+  <p class="mt-6 max-w-[54ch] text-[0.875rem] leading-relaxed">{t.contact.body}</p>
+  <ul class="mt-5 flex flex-wrap gap-x-8 gap-y-3">
+    {
+      t.contact.links.map((link) => (
+        <li>
+          <a href={link.href} rel="me noopener" class="text-sm link-underline">
+            {link.label}
+            <span aria-hidden="true"> ↗</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Section>

@@ -1,36 +1,44 @@
 ---
 import Base from "~/layouts/Base.astro";
+import { content } from "~/i18n/content";
 
 /**
- * GitHub Pages serves a top-level 404.html for any unmatched path, including
- * on a custom domain. Astro emits this route to exactly that filename, so
- * nothing extra is needed to wire it up.
+ * GitHub Pages serves exactly one top-level 404.html for every unmatched
+ * path, so this page can't know which language was wanted. It shows both
+ * rather than guessing, which is also the cheapest way to make the German
+ * side of the site not feel like an afterthought.
  */
+const en = content.en;
+const de = content.de;
 ---
 
-<Base title="Not found" noindex description="That page isn't here.">
+<Base locale="en" title="404" noindex showNav={false} description="Page not found.">
   <section class="pt-20 sm:pt-28">
-    <p class="label">Error</p>
+    <p class="label">{en.notFound.label} · {de.notFound.label}</p>
     <h1
-      class="font-display mt-4 text-[clamp(4rem,16vw,8rem)] leading-[0.8] tracking-tight tabular-nums"
+      class="mt-4 font-display text-[clamp(4rem,16vw,8rem)] leading-[0.8] tracking-tight tabular-nums"
     >
-      404
+      4<span class="initial">0</span>4
     </h1>
   </section>
 
-  <div class="mt-14 border-t border-foreground pt-6">
-    <p class="max-w-[52ch] text-[0.875rem] leading-relaxed">
-      That page isn't in the index — wrong address, or something that used to be
-      here and isn't any more.
-    </p>
+  <div class="mt-14 space-y-6 border-t border-foreground pt-6">
+    <div class="max-w-[52ch]">
+      <p class="text-[0.875rem] leading-relaxed">{en.notFound.body}</p>
+      <p class="mt-2">
+        <a href="/" class="text-sm link-underline">
+          <span aria-hidden="true">← </span>{en.notFound.back}
+        </a>
+      </p>
+    </div>
 
-    <p class="mt-6">
-      <a
-        href="/"
-        class="text-sm underline decoration-rule underline-offset-4 transition-colors hover:text-accent-strong hover:decoration-accent-strong"
-      >
-        <span aria-hidden="true">← </span>Back to the index
-      </a>
-    </p>
+    <div class="max-w-[52ch] border-t border-rule pt-6" lang="de">
+      <p class="text-[0.875rem] leading-relaxed">{de.notFound.body}</p>
+      <p class="mt-2">
+        <a href="/de/" class="text-sm link-underline">
+          <span aria-hidden="true">← </span>{de.notFound.back}
+        </a>
+      </p>
+    </div>
   </div>
 </Base>

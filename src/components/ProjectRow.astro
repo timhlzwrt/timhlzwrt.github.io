@@ -1,32 +1,28 @@
 ---
-import type { Project, Status } from "~/data/projects";
+import { statusLabel, type Project } from "~/data/projects";
 import { formatMonth, type RepoStats } from "~/lib/github";
+import type { Locale } from "~/i18n/content";
 
 interface Props {
   project: Project;
   stats?: RepoStats;
   index: number;
+  locale: Locale;
 }
 
-const { project, stats, index } = Astro.props;
+const { project, stats, index, locale } = Astro.props;
 
-const statusTone: Record<Status, string> = {
-  live: "text-accent-strong",
-  shipped: "text-foreground",
-  paused: "text-muted-foreground",
-  unmaintained: "text-muted-foreground",
-};
-
-// Language and date come from GitHub; if the fetch failed they simply
-// drop out of the row rather than rendering "null" or a dash.
+// Language and date come from GitHub; if the fetch failed they drop out of
+// the row rather than rendering "null" or a placeholder dash. A wall of
+// "0 ★" would say nothing, so stars only appear once earned.
 const meta = [
   stats?.language,
-  formatMonth(stats?.pushedAt),
-  // A wall of "0 ★" would say nothing, so stars only appear once earned.
+  formatMonth(stats?.pushedAt, locale),
   stats?.stars ? `${stats.stars} ★` : null,
 ].filter(Boolean) as string[];
 
 const ordinal = String(index + 1).padStart(2, "0");
+const isLive = project.status === "live";
 ---
 
 <article
@@ -38,44 +34,35 @@ const ordinal = String(index + 1).padStart(2, "0");
     class="absolute -top-px left-0 h-px w-0 bg-accent transition-[width] duration-300 ease-out group-hover:w-full"
   ></span>
 
-  <div
-    class="label pt-[0.4rem] tabular-nums transition-colors group-hover:text-accent-strong"
-  >
+  <div class="label pt-[0.4rem] tabular-nums transition-colors group-hover:!text-accent">
     {ordinal}
   </div>
 
   <div class="min-w-0">
-    {/* Stacked on phones — side by side the metadata crowds the title and
-        runs into the right edge. Baseline-aligned from sm up. */}
+    {/* Stacked on phones — side by side the metadata crowds the title. */}
     <div
       class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-6 sm:gap-y-1"
     >
-      <h3 class="font-display text-2xl leading-none sm:text-[1.75rem]">
-        {project.name}
-      </h3>
+      <h3 class="font-display text-2xl leading-none sm:text-[1.75rem]">{project.name}</h3>
 
       <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 sm:gap-x-4">
         {meta.map((item) => <span class="label tabular-nums">{item}</span>)}
-        <span class:list={["label", statusTone[project.status]]}>
-          {project.status}
+        <span class:list={["label", isLive && "!text-accent"]}>
+          {statusLabel[project.status][locale]}
         </span>
       </div>
     </div>
 
     <p class="mt-3 max-w-[62ch] text-[0.8125rem] leading-relaxed text-muted-foreground">
-      {project.blurb}
+      {project.blurb[locale]}
     </p>
 
     {
       project.links && (
         <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1">
           {project.links.map((link) => (
-            <a
-              href={link.href}
-              rel="noopener"
-              class="label underline decoration-rule underline-offset-4 transition-colors hover:!text-accent-strong hover:decoration-accent-strong"
-            >
-              {link.label}
+            <a href={link.href} rel="noopener" class="label link-underline">
+              {link.label[locale]}
               <span aria-hidden="true"> ↗</span>
             </a>
           ))}

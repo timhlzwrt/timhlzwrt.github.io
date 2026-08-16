@@ -1,59 +1,138 @@
 ---
 import "~/styles/global.css";
-import { site } from "~/data/site";
+import { content, profile, type Locale } from "~/i18n/content";
+import { alternatePath, otherLocale } from "~/i18n/utils";
 import ThemeToggle from "~/components/ThemeToggle.astro";
+import LangSwitch from "~/components/LangSwitch.astro";
 
 interface Props {
+  locale: Locale;
   title?: string;
   description?: string;
-  /** Which nav item to mark as current. Omit on pages that are in neither. */
-  current?: "index" | "about";
   /** Set on pages that shouldn't be indexed or given a canonical (e.g. 404). */
   noindex?: boolean;
+  /** In-page anchors for the header nav. Omitted on the 404 page. */
+  showNav?: boolean;
 }
 
-const { title, description = site.lede, current, noindex = false } = Astro.props;
+const { locale, title, description, noindex = false, showNav = true } = Astro.props;
 
-const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.domain}`;
-const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+const t = content[locale];
+const other = otherLocale(locale);
+const pathname = Astro.url.pathname;
+
+const pageTitle = title ? `${title} — ${profile.name}` : `${profile.name} — ${profile.domain}`;
+const pageDescription = description ?? t.meta.description;
+const canonical = new URL(pathname, Astro.site ?? profile.url).href;
+const alternateHref = new URL(alternatePath(other, pathname), Astro.site ?? profile.url).href;
 
 const nav = [
-  { label: "Index", href: "/", key: "index" as const },
-  { label: "About", href: "/about/", key: "about" as const },
+  { label: t.nav.about, href: "#about" },
+  { label: t.nav.skills, href: "#tools" },
+  { label: t.nav.privacy, href: "#privacy" },
+  { label: t.nav.work, href: "#work" },
+  { label: t.nav.contact, href: "#contact" },
 ];
 ---
 
 <!doctype html>
-<html lang="en" class="scroll-pt-16">
+<html lang={t.htmlLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
-    <meta name="description" content={description} />
-    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <meta name="description" content={pageDescription} />
+    {
+      noindex ? (
+        <meta name="robots" content="noindex" />
+      ) : (
+        <>
+          <link rel="canonical" href={canonical} />
+          <link rel="alternate" hreflang={other} href={alternateHref} />
+          <link rel="alternate" hreflang={locale} href={canonical} />
+          <link
+            rel="alternate"
+            hreflang="x-default"
+            href={new URL(alternatePath("en", pathname), Astro.site ?? profile.url).href}
+          />
+        </>
+      )
+    }
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta name="author" content={site.name} />
+    <meta name="author" content={profile.name} />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
-    <meta property="og:description" content={description} />
+    <meta property="og:description" content={pageDescription} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale === "de" ? "de_DE" : "en_GB"} />
     <meta name="twitter:card" content="summary" />
 
-    <meta name="theme-color" content="#faf8f3" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a1815" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fbf9f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#110f0d" media="(prefers-color-scheme: dark)" />
 
-    {/* Runs before first paint so the page never flashes the wrong theme. */}
+    {/*
+      One blocking script, run before first paint, doing three things that
+      would otherwise cause a visible flash: pick the theme, roll the accent
+      colour, and send German speakers to the German page.
+    */}
     <script is:inline>
       (function () {
+        var root = document.documentElement;
+
+        // -- theme ------------------------------------------------------
         try {
           var stored = localStorage.getItem("theme");
           var dark = stored
             ? stored === "dark"
             : window.matchMedia("(prefers-color-scheme: dark)").matches;
-          document.documentElement.classList.toggle("dark", dark);
+          root.classList.toggle("dark", dark);
         } catch (e) {
-          /* private mode, third-party cookie blocking, etc. — system default is fine */
+          /* storage blocked — system preference already applies */
+        }
+
+        // -- accent -----------------------------------------------------
+        // Six muted hues at one lightness, each verified to clear 4.5:1
+        // against its background. Only the hue changes between loads.
+        var palette = [
+          ["oklch(0.52 0.09 38)", "oklch(0.745 0.1 38)"],
+          ["oklch(0.52 0.09 80)", "oklch(0.745 0.1 80)"],
+          ["oklch(0.52 0.09 145)", "oklch(0.745 0.1 145)"],
+          ["oklch(0.52 0.085 200)", "oklch(0.745 0.1 200)"],
+          ["oklch(0.52 0.09 275)", "oklch(0.745 0.1 275)"],
+          ["oklch(0.52 0.09 350)", "oklch(0.745 0.1 350)"],
+        ];
+        var pick = palette[Math.floor(Math.random() * palette.length)];
+        root.style.setProperty("--accent-light", pick[0]);
+        root.style.setProperty("--accent-dark", pick[1]);
+
+        // -- language ---------------------------------------------------
+        // Browser language, not IP geolocation: no third-party lookup, no
+        // network request, and correct for a German speaker abroad.
+        // Only ever redirects EN -> DE, once, and never overrides a choice
+        // the visitor has already made with the switcher.
+        try {
+          var path = location.pathname;
+          var onGerman = path === "/de/" || path.indexOf("/de/") === 0;
+          var choice = localStorage.getItem("lang");
+
+          if (!choice && !onGerman && path === "/") {
+            var langs = navigator.languages || [navigator.language || ""];
+            // Order matters: ["en-US","de-DE"] means English preferred, so
+            // whichever of the two appears first wins. Matching "de"
+            // anywhere in the list would override a stated preference.
+            for (var i = 0; i < langs.length; i++) {
+              var tag = String(langs[i]).toLowerCase();
+              if (tag.indexOf("de") === 0) {
+                // replace() so Back doesn't bounce between the two.
+                location.replace("/de/");
+                break;
+              }
+              if (tag.indexOf("en") === 0) break;
+            }
+          }
+        } catch (e) {
+          /* no storage or no navigator.languages — English stands */
         }
       })();
     </script>
@@ -64,37 +143,35 @@ const nav = [
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-foreground focus:px-3 focus:py-2 focus:text-xs focus:text-background"
     >
-      Skip to content
+      {t.ui.skipToContent}
     </a>
 
     <div class="mx-auto w-full max-w-3xl px-6 sm:px-8">
       <header
-        class="flex items-baseline justify-between gap-4 border-b border-rule py-5"
+        class="sticky top-0 z-40 flex items-baseline justify-between gap-4 border-b border-rule bg-background/90 py-4 backdrop-blur-sm"
       >
         <a
-          href="/"
-          class="font-mono text-sm font-medium tracking-tight transition-colors hover:text-accent-strong"
+          href={locale === "de" ? "/de/" : "/"}
+          class="font-mono text-sm font-medium tracking-tight transition-colors hover:text-accent"
         >
-          {site.domain}
+          {profile.domain}
         </a>
 
-        <nav class="flex items-baseline gap-5" aria-label="Primary">
+        <div class="flex items-baseline gap-4 sm:gap-5">
           {
-            nav.map((item) => (
-              <a
-                href={item.href}
-                aria-current={current === item.key ? "page" : undefined}
-                class:list={[
-                  "label transition-colors hover:text-accent-strong",
-                  current === item.key && "!text-foreground",
-                ]}
-              >
-                {item.label}
-              </a>
-            ))
+            showNav && (
+              <nav class="hidden items-baseline gap-5 sm:flex" aria-label="Sections">
+                {nav.map((item) => (
+                  <a href={item.href} class="label transition-colors hover:!text-accent">
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            )
           }
-          <ThemeToggle />
-        </nav>
+          <LangSwitch locale={locale} />
+          <ThemeToggle label={t.ui.themeLabel} />
+        </div>
       </header>
 
       <main id="main">
@@ -102,19 +179,19 @@ const nav = [
       </main>
 
       <footer
-        class="mt-20 flex flex-col gap-3 border-t border-rule py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
+        class="mt-24 flex flex-col gap-3 border-t border-rule py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
       >
         <p>
-          {site.location} · <a
-            href={`mailto:${site.email}`}
-            class="transition-colors hover:text-accent-strong">{site.email}</a
+          {profile.city} · <a href={`mailto:${profile.email}`} class="link-underline"
+            >{profile.email}</a
           >
         </p>
-        <p class="tabular-nums">
-          Built with Astro. <a
-            href={`https://github.com/${site.handle}/timhlzwrt.github.io`}
-            class="underline decoration-rule underline-offset-4 transition-colors hover:text-accent-strong hover:decoration-accent-strong"
-            >Source</a
+        <p>
+          {t.footer.built}{" "}
+          <a
+            href={`https://github.com/${profile.handle}/timhlzwrt.github.io`}
+            rel="noopener"
+            class="link-underline">{t.footer.source}</a
           >.
         </p>
       </footer>

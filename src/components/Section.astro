@@ -1,0 +1,19 @@
+---
+interface Props {
+  id: string;
+  heading: string;
+  /** Optional right-hand label in the rule, e.g. an entry count. */
+  aside?: string;
+  class?: string;
+}
+
+const { id, heading, aside, class: className } = Astro.props;
+---
+
+<section id={id} class:list={["mt-20 scroll-mt-20", className]} aria-labelledby={`${id}-heading`}>
+  <div class="flex items-baseline justify-between gap-4 border-b border-foreground pb-2">
+    <h2 id={`${id}-heading`} class="label !text-foreground">{heading}</h2>
+    {aside && <span class="label tabular-nums">{aside}</span>}
+  </div>
+  <slot />
+</section>

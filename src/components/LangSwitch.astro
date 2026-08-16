@@ -1,0 +1,43 @@
+---
+import { content, type Locale } from "~/i18n/content";
+import { alternatePath, otherLocale } from "~/i18n/utils";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const other = otherLocale(locale);
+const t = content[locale];
+const href = alternatePath(other, Astro.url.pathname);
+---
+
+{/*
+  A plain link, not a <select> — it works without JavaScript, it's
+  crawlable, and it pairs with the hreflang tags in the head. The script
+  only records the choice so the auto-detect stops overriding it.
+*/}
+<a
+  href={href}
+  hreflang={other}
+  lang={other}
+  data-lang-switch={other}
+  aria-label={t.ui.switchLabel}
+  class="label transition-colors hover:!text-accent"
+>
+  {t.ui.switchTo}
+</a>
+
+<script>
+  // Once someone picks a language, remember it so the detector in <head>
+  // stops sending them back. Stored, not a cookie — nothing leaves the browser.
+  document.querySelectorAll<HTMLAnchorElement>("[data-lang-switch]").forEach((link) => {
+    link.addEventListener("click", () => {
+      try {
+        localStorage.setItem("lang", link.dataset.langSwitch ?? "en");
+      } catch {
+        /* storage blocked — the choice just won't persist */
+      }
+    });
+  });
+</script>

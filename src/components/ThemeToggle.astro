@@ -1,17 +1,20 @@
 ---
 /**
- * The only interactive element on the site, so it gets the only script.
- * Icons are two states of one glyph rather than a sun/moon pair — less
- * decoration, and it matches the hairline weight of everything else.
+ * Two states of one glyph rather than a sun/moon pair — less decoration,
+ * and it matches the hairline weight of everything else on the page.
  */
+interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
 ---
 
 <button
   id="theme-toggle"
   type="button"
-  class="label -my-1 cursor-pointer p-1 transition-colors hover:text-accent-strong"
-  aria-label="Switch colour theme"
-  aria-live="polite"
+  class="label -my-1 cursor-pointer p-1 transition-colors hover:!text-accent"
+  aria-label={label}
 >
   <svg
     width="13"
@@ -30,19 +33,13 @@
 <script>
   const toggle = document.getElementById("theme-toggle");
 
-  const sync = () => {
-    const dark = document.documentElement.classList.contains("dark");
-    toggle?.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
-  };
-
   toggle?.addEventListener("click", () => {
     const dark = document.documentElement.classList.toggle("dark");
     try {
       localStorage.setItem("theme", dark ? "dark" : "light");
     } catch {
-      /* storage unavailable — the choice just won't persist */
+      /* storage blocked — the choice just won't persist */
     }
-    sync();
   });
 
   // Follow the OS until the visitor states a preference of their own.
@@ -53,8 +50,5 @@
       /* ignore */
     }
     document.documentElement.classList.toggle("dark", event.matches);
-    sync();
   });
-
-  sync();
 </script>
