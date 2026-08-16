@@ -1,0 +1,60 @@
+---
+/**
+ * The only interactive element on the site, so it gets the only script.
+ * Icons are two states of one glyph rather than a sun/moon pair — less
+ * decoration, and it matches the hairline weight of everything else.
+ */
+---
+
+<button
+  id="theme-toggle"
+  type="button"
+  class="label -my-1 cursor-pointer p-1 transition-colors hover:text-accent-strong"
+  aria-label="Switch colour theme"
+  aria-live="polite"
+>
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 16 16"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.25"
+    aria-hidden="true"
+  >
+    <circle cx="8" cy="8" r="5.5"></circle>
+    <path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor" stroke="none"></path>
+  </svg>
+</button>
+
+<script>
+  const toggle = document.getElementById("theme-toggle");
+
+  const sync = () => {
+    const dark = document.documentElement.classList.contains("dark");
+    toggle?.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+  };
+
+  toggle?.addEventListener("click", () => {
+    const dark = document.documentElement.classList.toggle("dark");
+    try {
+      localStorage.setItem("theme", dark ? "dark" : "light");
+    } catch {
+      /* storage unavailable — the choice just won't persist */
+    }
+    sync();
+  });
+
+  // Follow the OS until the visitor states a preference of their own.
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+    try {
+      if (localStorage.getItem("theme")) return;
+    } catch {
+      /* ignore */
+    }
+    document.documentElement.classList.toggle("dark", event.matches);
+    sync();
+  });
+
+  sync();
+</script>

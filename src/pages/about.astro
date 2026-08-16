@@ -1,0 +1,103 @@
+---
+import Base from "~/layouts/Base.astro";
+import { site } from "~/data/site";
+
+const colophon = [
+  ["Framework", "Astro, static output"],
+  ["Type", "Instrument Serif · IBM Plex Mono, self-hosted"],
+  ["Styling", "Tailwind, hand-written tokens"],
+  ["Data", "GitHub REST API, read at build time"],
+  ["Hosting", "GitHub Pages"],
+  ["Analytics", "None"],
+];
+---
+
+<Base
+  current="about"
+  title="About"
+  description={`About ${site.name} — a developer in ${site.location} writing small tools in Python.`}
+>
+  <section class="pb-14 pt-20 sm:pt-28">
+    <h1 class="font-display text-[clamp(2.75rem,9vw,4.5rem)] leading-[0.9] tracking-tight">
+      About
+    </h1>
+  </section>
+
+  {/* Rule spans the full measure so it lines up with the section rules below;
+      the prose inside keeps a readable 62ch. */}
+  <div class="border-t border-foreground pt-8">
+    <div class="max-w-[62ch] space-y-6 text-[0.875rem] leading-[1.75]">
+    <p>
+      I'm {site.name}. I live in {site.location} and I write mostly Python.
+    </p>
+
+    <p>
+      Most of my public code comes from one place. My school ran its
+      substitution plan through DSBmobile — an app with no public API and no
+      apparent interest in having one. <a
+        href="https://github.com/timhlzwrt/dsbix"
+        class="underline decoration-rule underline-offset-4 transition-colors hover:text-accent-strong hover:decoration-accent-strong"
+        >dsbix</a
+      > began as a way to read it anyway. It's a rework of nerrixde's DSBApi, and
+      it has since been translated to JavaScript, wrapped in an HTTP service and
+      pushed to PyPI, which is considerably more attention than the original
+      problem deserved.
+    </p>
+
+    <p>
+      That school is behind me now, and so, largely, is the project. Because
+      every school configures DSBmobile differently, the field mapping is
+      approximately correct at best — the README says so plainly. I've left it
+      up because people still install it, and because taking down working code
+      is rude. If it breaks for you, <a
+        href="mailto:help@tjh.li"
+        class="underline decoration-rule underline-offset-4 transition-colors hover:text-accent-strong hover:decoration-accent-strong"
+        >help@tjh.li</a
+      > still works.
+    </p>
+
+    {/*
+      A "Now" section goes well here — what you're working on, studying, or
+      reading, in two or three sentences. It's the one part of this page I
+      couldn't write without inventing things about you, so I've left it to
+      you. Uncomment and fill in:
+
+      <h2 class="label !text-foreground pt-4">Now</h2>
+      <p>...</p>
+    */}
+    </div>
+  </div>
+
+  <section class="mt-20" aria-labelledby="colophon-heading">
+    <h2 id="colophon-heading" class="label border-b border-foreground pb-2 !text-foreground">
+      Colophon
+    </h2>
+    <dl class="mt-1">
+      {
+        colophon.map(([term, value]) => (
+          <div class="grid grid-cols-[7.5rem_1fr] gap-x-4 border-b border-rule py-3 text-[0.8125rem] sm:grid-cols-[10rem_1fr]">
+            <dt class="label pt-[0.2rem]">{term}</dt>
+            <dd class="text-muted-foreground">{value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="mt-20" aria-labelledby="contact-heading">
+    <h2 id="contact-heading" class="label border-b border-foreground pb-2 !text-foreground">
+      Contact
+    </h2>
+    <p class="mt-5 max-w-[54ch] text-[0.875rem] leading-relaxed">
+      <a
+        href={`mailto:${site.email}`}
+        class="underline decoration-rule underline-offset-4 transition-colors hover:text-accent-strong hover:decoration-accent-strong"
+        >{site.email}</a
+      > is the fastest way to reach me. Everything else is on the <a
+        href="/"
+        class="underline decoration-rule underline-offset-4 transition-colors hover:text-accent-strong hover:decoration-accent-strong"
+        >index</a
+      >.
+    </p>
+  </section>
+</Base>

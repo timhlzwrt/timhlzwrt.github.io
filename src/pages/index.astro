@@ -1,0 +1,73 @@
+---
+import Base from "~/layouts/Base.astro";
+import ProjectRow from "~/components/ProjectRow.astro";
+import { projects } from "~/data/projects";
+import { site } from "~/data/site";
+import { fetchRepoStats } from "~/lib/github";
+
+const stats = await fetchRepoStats();
+---
+
+<Base current="index">
+  <section class="pb-16 pt-20 sm:pt-28">
+    <h1
+      class="font-display text-[clamp(3.5rem,14vw,7rem)] leading-[0.85] tracking-tight"
+    >
+      {site.name}
+    </h1>
+
+    <p class="label mt-6">
+      {site.location} · <a
+        href={`mailto:${site.email}`}
+        class="transition-colors hover:!text-accent-strong">{site.email}</a
+      > · <a
+        href={`https://github.com/${site.handle}`}
+        rel="me noopener"
+        class="transition-colors hover:!text-accent-strong">@{site.handle}</a
+      >
+    </p>
+
+    <p class="mt-8 max-w-[54ch] text-[0.9375rem] leading-relaxed">
+      {site.lede}
+    </p>
+  </section>
+
+  <section aria-labelledby="index-heading">
+    <div class="flex items-baseline justify-between border-b border-foreground pb-2">
+      <h2 id="index-heading" class="label !text-foreground">Index</h2>
+      <span class="label tabular-nums">
+        {projects.length} {projects.length === 1 ? "entry" : "entries"}
+      </span>
+    </div>
+
+    {
+      projects.map((project, index) => (
+        <ProjectRow project={project} stats={stats.get(project.repo)} index={index} />
+      ))
+    }
+
+    <div class="border-t border-rule"></div>
+  </section>
+
+  <section class="mt-20" aria-labelledby="elsewhere-heading">
+    <h2 id="elsewhere-heading" class="label border-b border-foreground pb-2 !text-foreground">
+      Elsewhere
+    </h2>
+    <ul class="mt-5 flex flex-wrap gap-x-8 gap-y-3">
+      {
+        site.links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              rel="me noopener"
+              class="text-sm underline decoration-rule underline-offset-4 transition-colors hover:text-accent-strong hover:decoration-accent-strong"
+            >
+              {link.label}
+              <span aria-hidden="true"> ↗</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

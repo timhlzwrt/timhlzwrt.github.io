@@ -1,0 +1,123 @@
+---
+import "~/styles/global.css";
+import { site } from "~/data/site";
+import ThemeToggle from "~/components/ThemeToggle.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Which nav item to mark as current. Omit on pages that are in neither. */
+  current?: "index" | "about";
+  /** Set on pages that shouldn't be indexed or given a canonical (e.g. 404). */
+  noindex?: boolean;
+}
+
+const { title, description = site.lede, current, noindex = false } = Astro.props;
+
+const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — ${site.domain}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+
+const nav = [
+  { label: "Index", href: "/", key: "index" as const },
+  { label: "About", href: "/about/", key: "about" as const },
+];
+---
+
+<!doctype html>
+<html lang="en" class="scroll-pt-16">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="author" content={site.name} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+
+    <meta name="theme-color" content="#faf8f3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a1815" media="(prefers-color-scheme: dark)" />
+
+    {/* Runs before first paint so the page never flashes the wrong theme. */}
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var dark = stored
+            ? stored === "dark"
+            : window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.classList.toggle("dark", dark);
+        } catch (e) {
+          /* private mode, third-party cookie blocking, etc. — system default is fine */
+        }
+      })();
+    </script>
+  </head>
+
+  <body class="min-h-dvh antialiased">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-foreground focus:px-3 focus:py-2 focus:text-xs focus:text-background"
+    >
+      Skip to content
+    </a>
+
+    <div class="mx-auto w-full max-w-3xl px-6 sm:px-8">
+      <header
+        class="flex items-baseline justify-between gap-4 border-b border-rule py-5"
+      >
+        <a
+          href="/"
+          class="font-mono text-sm font-medium tracking-tight transition-colors hover:text-accent-strong"
+        >
+          {site.domain}
+        </a>
+
+        <nav class="flex items-baseline gap-5" aria-label="Primary">
+          {
+            nav.map((item) => (
+              <a
+                href={item.href}
+                aria-current={current === item.key ? "page" : undefined}
+                class:list={[
+                  "label transition-colors hover:text-accent-strong",
+                  current === item.key && "!text-foreground",
+                ]}
+              >
+                {item.label}
+              </a>
+            ))
+          }
+          <ThemeToggle />
+        </nav>
+      </header>
+
+      <main id="main">
+        <slot />
+      </main>
+
+      <footer
+        class="mt-20 flex flex-col gap-3 border-t border-rule py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p>
+          {site.location} · <a
+            href={`mailto:${site.email}`}
+            class="transition-colors hover:text-accent-strong">{site.email}</a
+          >
+        </p>
+        <p class="tabular-nums">
+          Built with Astro. <a
+            href={`https://github.com/${site.handle}/timhlzwrt.github.io`}
+            class="underline decoration-rule underline-offset-4 transition-colors hover:text-accent-strong hover:decoration-accent-strong"
+            >Source</a
+          >.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
