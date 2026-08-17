@@ -141,7 +141,7 @@ const de: Content = {
   meta: {
     title: "Tim Jonas Holzwarth",
     description:
-      "Tim Jonas Holzwarth, Auszubildender Fachinformatiker für Systemintegration bei einer Bank in Stuttgart. Python, Linux, ein Proxmox-Homelab und ein hartnäckiges Interesse an Datenschutz.",
+      "Tim Jonas Holzwarth, Auszubildender zum Fachinformatiker für Systemintegration bei einer Bank in Stuttgart. Python, Linux, ein Proxmox-Homelab und ein hartnäckiges Interesse an Datenschutz.",
   },
   nav: {
     about: "Über mich",
@@ -167,16 +167,16 @@ const de: Content = {
   about: {
     heading: "Über mich",
     body: [
-      "Ich zerlege Computer, seit lange bevor mich jemand dafür bezahlt hat. Das meiste habe ich gelernt, weil ich etwas gebraucht habe, das es noch nicht gab.",
-      "Meine Schule hat DSBmobile für den Vertretungsplan benutzt, eine ziemlich schlechte App ohne öffentliche API. Also habe ich dsbix geschrieben, um ihn trotzdem auszulesen. Gelandet ist es auf PyPI, was so nicht geplant war.",
+      "Ich habe schon Computer zerlegt, lange bevor mich jemand dafür bezahlt hat. Das meiste habe ich gelernt, weil ich etwas gebraucht habe, das es noch nicht gab.",
+      "Meine Schule hat für den Vertretungsplan DSBmobile benutzt, eine ziemlich schlechte App ohne öffentliche API. Also habe ich dsbix geschrieben, um ihn trotzdem auszulesen. Gelandet ist es auf PyPI, was so nicht geplant war.",
       "Ab August 2026 mache ich eine Ausbildung zum Fachinformatiker für Systemintegration bei einer Bank in Stuttgart. Systemintegration ist die Infrastrukturseite des Berufs: Netzwerke, Server, die Dinge, die laufen müssen. Drei Jahre, im Wechsel zwischen Bank und Berufsschule.",
-      "Zu Hause läuft ein kleiner Proxmox-Rechner mit Home Assistant. Nichts Großes, aber den eigenen Server falsch zu konfigurieren bringt mehr bei als darüber zu lesen.",
+      "Zu Hause läuft ein kleiner Proxmox-Rechner mit Home Assistant. Nichts Großes, aber den eigenen Server falsch zu konfigurieren bringt einem mehr bei, als darüber zu lesen.",
       "Security ist die Richtung, in die es gehen soll. Welche Zertifikate sich lohnen, weiß ich noch nicht.",
     ],
   },
   skills: {
     heading: "Werkzeuge",
-    note: "Was ich benutze, und was ich noch lerne.",
+    note: "Was ich benutze und was ich noch lerne.",
     groups: [
       { label: "Sicher", items: ["Python", "JavaScript", "Git", "Linux"] },
       { label: "Homelab", items: ["Proxmox", "Home Assistant", "Selfhosting"] },
@@ -210,7 +210,7 @@ const de: Content = {
   },
   notFound: {
     label: "Fehler",
-    body: "Falsche Adresse, oder etwas, das es mal gab und jetzt nicht mehr.",
+    body: "Falsche Adresse oder etwas, das es mal gab und jetzt nicht mehr.",
     back: "Zurück zum Anfang",
   },
   footer: { built: "Gebaut mit Astro.", source: "Quellcode" },

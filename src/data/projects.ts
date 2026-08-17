@@ -37,7 +37,7 @@ export const projects: Project[] = [
     status: "unmaintained",
     blurb: {
       en: "Reads timetable changes out of DSBmobile, the substitution-plan app most German schools run. A rework of nerrixde's DSBApi, published to PyPI. Every school configures DSBmobile differently, so the field mapping is deliberately left for you to correct.",
-      de: "Liest Vertretungsplan-Änderungen aus DSBmobile aus, der App, über die die meisten deutschen Schulen ihren Plan verteilen. Eine Überarbeitung von nerrixdes DSBApi, veröffentlicht auf PyPI. Jede Schule richtet DSBmobile anders ein, deshalb muss das Feld-Mapping bewusst selbst angepasst werden.",
+      de: "Liest Vertretungsplan-Änderungen aus DSBmobile aus, der App, über die die meisten deutschen Schulen ihren Plan verteilen. Eine Überarbeitung von nerrixdes DSBApi, veröffentlicht auf PyPI. Jede Schule richtet DSBmobile anders ein, deshalb bleibt das Feld-Mapping bewusst dir zum Anpassen überlassen.",
     },
     links: [
       { label: { en: "PyPI", de: "PyPI" }, href: "https://pypi.org/project/dsbix/" },
@@ -62,7 +62,7 @@ export const projects: Project[] = [
     status: "live",
     blurb: {
       en: "This site. Astro and hand-written CSS, no tracking of any kind, and an accent colour that picks itself at random on every load. The metadata in this table is fetched from GitHub when the site builds, not when you visit.",
-      de: "Diese Seite. Astro und handgeschriebenes CSS, kein Tracking jeglicher Art, und eine Akzentfarbe, die sich bei jedem Laden neu auswürfelt. Die Daten in dieser Tabelle werden beim Bauen der Seite von GitHub geholt, nicht bei deinem Besuch.",
+      de: "Diese Seite. Astro und handgeschriebenes CSS, kein Tracking jeglicher Art und eine Akzentfarbe, die sich bei jedem Laden neu auswürfelt. Die Daten in dieser Tabelle werden beim Bauen der Seite von GitHub geholt, nicht bei deinem Besuch.",
     },
     links: [{ label: SOURCE, href: "https://github.com/timhlzwrt/timhlzwrt.github.io" }],
   },
