@@ -21,7 +21,7 @@ const t = content[locale];
 const other = otherLocale(locale);
 const pathname = Astro.url.pathname;
 
-const pageTitle = title ? `${title} — ${profile.name}` : `${profile.name} — ${profile.domain}`;
+const pageTitle = title ? `${title} · ${profile.name}` : `${profile.name} · ${profile.domain}`;
 const pageDescription = description ?? t.meta.description;
 const canonical = new URL(pathname, Astro.site ?? profile.url).href;
 const alternateHref = new URL(alternatePath(other, pathname), Astro.site ?? profile.url).href;
@@ -88,7 +88,7 @@ const nav = [
             : window.matchMedia("(prefers-color-scheme: dark)").matches;
           root.classList.toggle("dark", dark);
         } catch (e) {
-          /* storage blocked — system preference already applies */
+          /* storage blocked; system preference already applies */
         }
 
         // -- accent -----------------------------------------------------
@@ -132,7 +132,7 @@ const nav = [
             }
           }
         } catch (e) {
-          /* no storage or no navigator.languages — English stands */
+          /* no storage or no navigator.languages; English stands */
         }
       })();
     </script>

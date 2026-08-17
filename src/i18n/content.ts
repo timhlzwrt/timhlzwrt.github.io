@@ -1,7 +1,7 @@
 /**
  * All page copy, in both languages, in one file.
  *
- * Edit here and both locales stay in sync structurally — TypeScript will
+ * Edit here and both locales stay in sync structurally. TypeScript will
  * complain if you add a key to `en` and forget it in `de`.
  *
  * German uses "du" throughout (lowercase, per the 1996 reform). If you ever
@@ -15,7 +15,7 @@ export const DEFAULT_LOCALE: Locale = "en";
 
 /**
  * The name is split so the initials can be tinted with the (randomised)
- * accent colour — T, J, H → tjh.li, without a caption explaining the joke.
+ * accent colour: T, J, H give you tjh.li, without a caption explaining it.
  */
 export const NAME_PARTS = [
   { initial: "T", rest: "im" },
@@ -82,21 +82,21 @@ const en: Content = {
     role: "Fachinformatiker für Systemintegration",
     employer: "in training at a bank in Stuttgart",
     lede:
-      "Three years learning to build and run the systems a bank depends on. Before that I wrote Python tools to get data out of software that would rather have kept it.",
+      "Three years learning to build and run the systems a bank runs on. Before that, Python tools for getting data out of software that did not want to give it up.",
   },
   about: {
     heading: "About",
     body: [
-      "I've been taking things apart on a computer since well before anyone was paying me for it. Most of what I know I learned by needing something to exist and finding that it didn't.",
-      "My school ran its substitution plan through DSBmobile, an app with no public API and no apparent interest in having one. dsbix began as a way to read it anyway, and turned into a package other people install, which was not the plan.",
-      "I'm training as a Fachinformatiker für Systemintegration at a bank in Stuttgart, starting August 2026. Systemintegration is the side of the job concerned with infrastructure rather than applications: networks, servers, the parts that have to stay up. It's a three-year dual programme, so it alternates between the bank and vocational school.",
-      "At home there's a small Proxmox box running Home Assistant and whatever else I feel like breaking that week. Nothing elaborate, but it's the fastest way I've found to learn how infrastructure actually behaves once you've misconfigured it.",
-      "Security is the direction I'd like this to go. I haven't worked out yet which certifications are worth the time, so for now it's reading, breaking my own things, and paying attention.",
+      "I've been taking computers apart since long before anyone paid me for it. Most of what I know started with needing something that did not exist yet.",
+      "My school used DSBmobile for its substitution plan and it had no public API, so I wrote dsbix to read it anyway. It ended up on PyPI, which was not the plan.",
+      "From August 2026 I'm training as a Fachinformatiker für Systemintegration at a bank in Stuttgart. Systemintegration is the infrastructure side of the job: networks, servers, the things that have to stay up. Three years, alternating between the bank and vocational school.",
+      "At home I run a small Proxmox box with Home Assistant on it. Nothing elaborate, but misconfiguring your own server teaches you more than reading about it.",
+      "Security is where I want to end up. I have not decided which certifications are worth it yet.",
     ],
   },
   skills: {
     heading: "Tools",
-    note: "Split honestly between what I use and what I'm still learning.",
+    note: "What I use, and what I am still learning.",
     groups: [
       { label: "Comfortable", items: ["Python", "JavaScript", "Git", "Linux"] },
       { label: "Homelab", items: ["Proxmox", "Home Assistant", "Self-hosting"] },
@@ -107,9 +107,8 @@ const en: Content = {
   privacy: {
     heading: "Privacy",
     body: [
-      "Most software treats the data you generate as though it were the software's property. I don't accept that as settled, and I'd rather argue the point by building things that don't do it than by writing a manifesto about it.",
-      "So: this site sets no cookies. It runs no analytics and has no idea you're here. It loads nothing from a third party, the fonts are served from this domain, not from Google, and there is no CDN in the path. It makes no network request you didn't ask for by typing the address.",
-      "The repository metadata further down was fetched once, when the site was built, on a machine that isn't yours. Your browser does not talk to GitHub. You can verify all of this in the network tab, which is rather the point.",
+      "Most software treats the data you generate as its own. I would rather build things that do not, so this site collects nothing about you.",
+      "The repository data below was fetched when the site was built, not when you opened it. Your browser never talks to GitHub. The network tab will confirm all of it.",
     ],
     facts: [
       ["Cookies", "None"],
@@ -119,7 +118,7 @@ const en: Content = {
       ["Source", "Public"],
     ],
   },
-  work: { heading: "Work", note: "Small things, mostly built because they didn't exist." },
+  work: { heading: "Work", note: "Small things, built because they did not exist." },
   contact: {
     heading: "Contact",
     body: "Email is the fastest way to reach me.",
@@ -131,7 +130,7 @@ const en: Content = {
   },
   notFound: {
     label: "Error",
-    body: "That page isn't here. Wrong address, or something that used to exist and doesn't any more.",
+    body: "Wrong address, or something that used to be here and is not any more.",
     back: "Back to the start",
   },
   footer: { built: "Built with Astro.", source: "Source" },
@@ -163,21 +162,21 @@ const de: Content = {
     role: "Fachinformatiker für Systemintegration",
     employer: "in Ausbildung bei einer Bank in Stuttgart",
     lede:
-      "Drei Jahre lang lernen, die Systeme zu bauen und zu betreiben, auf die sich eine Bank verlässt. Davor habe ich Python-Tools geschrieben, um Daten aus Software zu holen, die sie lieber behalten hätte.",
+      "Drei Jahre lang lernen, die Systeme zu bauen und zu betreiben, auf die eine Bank angewiesen ist. Davor Python-Tools, um Daten aus Software zu holen, die sie nicht herausgeben wollte.",
   },
   about: {
     heading: "Über mich",
     body: [
-      "Ich zerlege Dinge am Rechner, seit lange bevor mich jemand dafür bezahlt hat. Das meiste habe ich gelernt, weil ich etwas gebraucht habe, das es noch nicht gab.",
-      "Meine Schule hat ihren Vertretungsplan über DSBmobile laufen lassen, eine (argumentativ schlechte) App ohne öffentliche API und ohne erkennbares Interesse daran, eine zu haben. dsbix ist als Weg entstanden, sie trotzdem auszulesen, und daraus wurde ein Paket, das andere Leute installieren. So war das nicht geplant.",
-      "Ich mache eine Ausbildung zum Fachinformatiker für Systemintegration bei einer Bank in Stuttgart, Start im August 2026. Systemintegration ist die Seite des Berufs, die sich um Infrastruktur statt um Anwendungen kümmert: Netzwerke, Server, die Teile, die laufen müssen. Die Ausbildung ist dual und dauert drei Jahre, wechselt also zwischen Bank und Berufsschule.",
-      "Zu Hause läuft ein kleiner Proxmox-Rechner mit Home Assistant und allem anderen, was ich gerade kaputt machen will. Nichts Großes, aber der schnellste Weg, den ich kenne, um zu lernen, wie sich Infrastruktur wirklich verhält, wenn man sie einmal falsch konfiguriert hat.",
-      "Security ist die Richtung, in die es gehen soll. Welche Zertifikate die Zeit wert sind, habe ich noch nicht herausgefunden, also bleibt es erstmal bei Lesen, eigene Sachen kaputt machen und aufmerksam sein.",
+      "Ich zerlege Computer, seit lange bevor mich jemand dafür bezahlt hat. Das meiste habe ich gelernt, weil ich etwas gebraucht habe, das es noch nicht gab.",
+      "Meine Schule hat DSBmobile für den Vertretungsplan benutzt, eine ziemlich schlechte App ohne öffentliche API. Also habe ich dsbix geschrieben, um ihn trotzdem auszulesen. Gelandet ist es auf PyPI, was so nicht geplant war.",
+      "Ab August 2026 mache ich eine Ausbildung zum Fachinformatiker für Systemintegration bei einer Bank in Stuttgart. Systemintegration ist die Infrastrukturseite des Berufs: Netzwerke, Server, die Dinge, die laufen müssen. Drei Jahre, im Wechsel zwischen Bank und Berufsschule.",
+      "Zu Hause läuft ein kleiner Proxmox-Rechner mit Home Assistant. Nichts Großes, aber den eigenen Server falsch zu konfigurieren bringt mehr bei als darüber zu lesen.",
+      "Security ist die Richtung, in die es gehen soll. Welche Zertifikate sich lohnen, weiß ich noch nicht.",
     ],
   },
   skills: {
     heading: "Werkzeuge",
-    note: "Ehrlich getrennt nach dem, was ich benutze, und dem, was ich noch lerne.",
+    note: "Was ich benutze, und was ich noch lerne.",
     groups: [
       { label: "Sicher", items: ["Python", "JavaScript", "Git", "Linux"] },
       { label: "Homelab", items: ["Proxmox", "Home Assistant", "Selfhosting"] },
@@ -188,9 +187,8 @@ const de: Content = {
   privacy: {
     heading: "Datenschutz",
     body: [
-      "Die meiste Software behandelt die Daten, die man erzeugt, als wären sie ihr Eigentum. Ich halte das nicht für ausgemacht, und ich streite darüber lieber, indem ich Dinge baue, die es anders machen, als indem ich ein Manifest schreibe.",
-      "Also: Diese Seite setzt keine Cookies ein. Sie hat kein Analytics und weiß nicht, dass du hier bist. Sie lädt nichts von Dritten, die Schriften kommen von dieser Domain, nicht von Google, und es liegt kein CDN dazwischen. Sie stellt keine Anfrage, die du nicht durch Eingabe der Adresse selbst ausgelöst hast.",
-      "Die Repository-Daten weiter unten wurden einmal abgerufen, beim Bauen der Seite, auf einem Rechner, der dir nicht gehört. Dein Browser spricht nicht mit GitHub. Das lässt sich alles im Netzwerk-Tab nachprüfen, und genau darum geht es.",
+      "Die meiste Software behandelt die Daten, die man erzeugt, als wären es ihre eigenen. Ich baue lieber Sachen, die das nicht tun, also sammelt diese Seite nichts über dich.",
+      "Die Repository-Daten unten wurden beim Bauen der Seite geholt, nicht beim Öffnen. Dein Browser spricht nie mit GitHub. Im Netzwerk-Tab lässt sich das nachprüfen.",
     ],
     facts: [
       ["Cookies", "Keine"],
@@ -200,7 +198,7 @@ const de: Content = {
       ["Quellcode", "Öffentlich"],
     ],
   },
-  work: { heading: "Projekte", note: "Kleine Sachen, meistens gebaut, weil es sie noch nicht gab." },
+  work: { heading: "Projekte", note: "Kleine Sachen, gebaut, weil es sie nicht gab." },
   contact: {
     heading: "Kontakt",
     body: "Per E-Mail erreichst du mich am schnellsten.",
@@ -212,7 +210,7 @@ const de: Content = {
   },
   notFound: {
     label: "Fehler",
-    body: "Diese Seite gibt es nicht. Falsche Adresse, oder etwas, das es mal gab und jetzt nicht mehr.",
+    body: "Falsche Adresse, oder etwas, das es mal gab und jetzt nicht mehr.",
     back: "Zurück zum Anfang",
   },
   footer: { built: "Gebaut mit Astro.", source: "Quellcode" },

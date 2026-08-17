@@ -28,7 +28,7 @@ const isLive = project.status === "live";
 <article
   class="group relative grid grid-cols-[1.75rem_1fr] gap-x-2 border-t border-rule py-6 sm:gap-x-4"
 >
-  {/* Hairline that lights up on hover — the row's only affordance. */}
+  {/* Hairline that lights up on hover. The row's only affordance. */}
   <span
     aria-hidden="true"
     class="absolute -top-px left-0 h-px w-0 bg-accent transition-[width] duration-300 ease-out group-hover:w-full"
@@ -39,7 +39,7 @@ const isLive = project.status === "live";
   </div>
 
   <div class="min-w-0">
-    {/* Stacked on phones — side by side the metadata crowds the title. */}
+    {/* Stacked on phones: side by side, the metadata crowds the title. */}
     <div
       class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-6 sm:gap-y-1"
     >

@@ -13,7 +13,7 @@ const href = alternatePath(other, Astro.url.pathname);
 ---
 
 {/*
-  A plain link, not a <select> — it works without JavaScript, it's
+  A plain link rather than a <select>: it works without JavaScript, it's
   crawlable, and it pairs with the hreflang tags in the head. The script
   only records the choice so the auto-detect stops overriding it.
 */}
@@ -30,13 +30,13 @@ const href = alternatePath(other, Astro.url.pathname);
 
 <script>
   // Once someone picks a language, remember it so the detector in <head>
-  // stops sending them back. Stored, not a cookie — nothing leaves the browser.
+  // stops sending them back. Stored, not a cookie, nothing leaves the browser.
   document.querySelectorAll<HTMLAnchorElement>("[data-lang-switch]").forEach((link) => {
     link.addEventListener("click", () => {
       try {
         localStorage.setItem("lang", link.dataset.langSwitch ?? "en");
       } catch {
-        /* storage blocked — the choice just won't persist */
+        /* storage blocked, the choice just won't persist */
       }
     });
   });

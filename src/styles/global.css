@@ -6,13 +6,13 @@
 @import "@fontsource/ibm-plex-mono/latin-500.css";
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark.dark *));
 
 /*
   Paper, ink, and one accent that rerolls on every page load.
 
-  The accent is stored as two custom properties — one tuned for each theme —
-  which an inline script in <head> overwrites before first paint. `--accent`
+  The accent is stored as two custom properties, one per theme, which an
+  inline script in <head> overwrites before first paint. `--accent`
   then just points at whichever the current theme needs, so toggling the
   theme picks up the right variant with no extra JavaScript.
 
@@ -139,7 +139,7 @@
     text-rendering: optimizeLegibility;
   }
 
-  /* Instrument Serif ships a single weight — never let a browser fake-bold it. */
+  /* Instrument Serif ships a single weight. Never let a browser fake-bold it. */
   .font-display {
     font-weight: 400;
     letter-spacing: -0.015em;
@@ -165,7 +165,7 @@
   color: var(--muted-foreground);
 }
 
-/* T, J, H — the initials that explain the domain. */
+/* T, J and H: the initials that explain the domain. */
 @utility initial {
   color: var(--accent);
   transition: color 0.2s ease;

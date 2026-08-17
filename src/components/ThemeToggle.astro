@@ -1,6 +1,6 @@
 ---
 /**
- * Two states of one glyph rather than a sun/moon pair — less decoration,
+ * Two states of one glyph rather than a sun/moon pair. Less decoration,
  * and it matches the hairline weight of everything else on the page.
  */
 interface Props {
@@ -38,7 +38,7 @@ const { label } = Astro.props;
     try {
       localStorage.setItem("theme", dark ? "dark" : "light");
     } catch {
-      /* storage blocked — the choice just won't persist */
+      /* storage blocked; the choice just won't persist */
     }
   });
 

@@ -31,7 +31,7 @@ jobs:
           cache: npm
 
       # Enables Pages if it's switched off entirely. Note it does NOT convert
-      # an existing branch-deploy repo to Actions — that needed an explicit
+      # an existing branch-deploy repo to Actions, that needed an explicit
       # `build_type=workflow` on the Pages API (done once, already applied).
       - uses: actions/configure-pages@v6
         with:
