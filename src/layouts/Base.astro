@@ -30,9 +30,32 @@ const alternateHref = new URL(alternatePath(other, pathname), Astro.site ?? prof
 // page per locale and the artwork is locale-neutral. See scripts/generate-og.mjs.
 const ogImage = new URL("/og.png", Astro.site ?? profile.url).href;
 
+/**
+ * Ties tjh.li, GitHub and X together as one identity for search engines: the
+ * same job `rel="me"` does on the contact links, in the format crawlers
+ * actually read. Baked into the HTML as static JSON, so it costs no script
+ * execution and no third-party request, and `sameAs` is derived from the
+ * contact links rather than repeated, so the two can't drift.
+ */
+const personLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: profile.name,
+  url: profile.url,
+  image: ogImage,
+  jobTitle: t.hero.role,
+  email: `mailto:${profile.email}`,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: profile.city,
+    addressCountry: "DE",
+  },
+  sameAs: t.contact.links.map((link) => link.href).filter((href) => !href.startsWith("mailto:")),
+};
+
 const nav = [
   { label: t.nav.about, href: "#about" },
-  { label: t.nav.skills, href: "#tools" },
+  { label: t.nav.tools, href: "#tools" },
   { label: t.nav.privacy, href: "#privacy" },
   { label: t.nav.work, href: "#work" },
   { label: t.nav.contact, href: "#contact" },
@@ -75,6 +98,12 @@ const nav = [
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={t.meta.imageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
+
+    {
+      !noindex && (
+        <script type="application/ld+json" is:inline set:html={JSON.stringify(personLd)} />
+      )
+    }
 
     <meta name="theme-color" content="#fbf9f5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#110f0d" media="(prefers-color-scheme: dark)" />

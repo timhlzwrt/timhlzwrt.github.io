@@ -34,6 +34,18 @@ type error, not a silent gap. `src/pages/index.astro` and
 locale="..." /></Base>`. The routing split is locale-only, all real markup
 lives in `src/components/`.
 
+**Some copy is derived, not written.** `content.ts` computes `trainingYear()`
+from `TRAINING_START` and picks the opening clause of the apprenticeship
+paragraph out of `TRAINING_LEAD` (index 0 is "not started yet", 1 to 3 are the
+Lehrjahre). It is evaluated at build time, so the nightly rebuild is what
+advances it from "first year" to "second year" without an edit. If you change
+that sentence, keep every entry in `TRAINING_LEAD` grammatically
+interchangeable, since they all read on into the same continuation.
+
+`content.ts` deliberately has no imports: `scripts/generate-og.mjs` loads it
+directly through Node's type stripping, which does not understand the `~/*`
+alias. Keep new helpers local to the file.
+
 **Locale routing** (`src/i18n/utils.ts`): English is unprefixed (`/`), German
 is prefixed (`/de/`). `localePath`/`alternatePath` build cross-locale links
 and hreflang tags consistently; `trailingSlash: "always"` (astro.config.mjs)
