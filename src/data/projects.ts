@@ -47,15 +47,14 @@ export const projects: Project[] = [
   {
     name: "dsbixAPI",
     repo: "dsbixAPI",
-    status: "live",
+    // The Vercel deployment is gone (root 404s, /api 500s), so this is no
+    // longer "live". Flip back and restore the Live link if you redeploy it.
+    status: "paused",
     blurb: {
-      en: "An HTTP layer over dsbix, so anything that isn't Python can read the same data. Deployed on Vercel.",
-      de: "Eine HTTP-Schicht über dsbix, damit auch alles, was kein Python ist, dieselben Daten lesen kann. Läuft auf Vercel.",
+      en: "An HTTP layer over dsbix, so anything that isn't Python can read the same data. The hosted instance is currently down.",
+      de: "Eine HTTP-Schicht über dsbix, damit auch alles, was kein Python ist, dieselben Daten lesen kann. Die gehostete Instanz läuft gerade nicht.",
     },
-    links: [
-      { label: { en: "Live", de: "Live" }, href: "https://dsbix-api.vercel.app" },
-      { label: SOURCE, href: "https://github.com/timhlzwrt/dsbixAPI" },
-    ],
+    links: [{ label: SOURCE, href: "https://github.com/timhlzwrt/dsbixAPI" }],
   },
   {
     name: "tjh.li",
