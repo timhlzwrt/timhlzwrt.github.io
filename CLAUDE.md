@@ -19,7 +19,7 @@ npm run check    # astro check: types + template diagnostics
 ```
 
 There is no test suite and no lint script. `npm run check` is the correctness
-gate — it fails the build if `en` and `de` content fall out of sync (see
+gate. It fails the build if `en` and `de` content fall out of sync (see
 below), so run it after editing anything under `src/i18n/` or `src/data/`.
 
 ## Architecture
@@ -30,7 +30,7 @@ string lives there; nothing is hardcoded in components. Because both locales
 satisfy the same interface, adding a key to one and forgetting the other is a
 type error, not a silent gap. `src/pages/index.astro` and
 `src/pages/de/index.astro` are both just `<Base locale="..."><Home
-locale="..." /></Base>` — the routing split is locale-only, all real markup
+locale="..." /></Base>`. The routing split is locale-only, all real markup
 lives in `src/components/`.
 
 **Locale routing** (`src/i18n/utils.ts`): English is unprefixed (`/`), German
@@ -46,7 +46,7 @@ the light/dark theme before paint, to avoid a flash of the wrong one.
 **GitHub metadata is fetched at build time, not runtime**
 (`src/lib/github.ts`). `fetchRepoStats()` hits the GitHub API once per build
 (memoized in-module so Astro's parallel page rendering doesn't issue it
-twice), and the result is baked into the static HTML — visitors' browsers
+twice), and the result is baked into the static HTML, so visitors' browsers
 never contact GitHub. Every failure path (rate limit, network error,
 non-200) is non-fatal: the build succeeds and the metadata columns are
 simply omitted. `.github/workflows/deploy.yml` runs a nightly scheduled
@@ -60,7 +60,7 @@ per project, with `repo` used to look up live stats from `fetchRepoStats()`.
 without metadata (not a build failure).
 
 **Styling**: Tailwind v4 via `@tailwindcss/vite` (no separate Tailwind config
-file — v4 is CSS-driven). Design tokens in `src/styles/global.css` follow
+file, since v4 is CSS-driven). Design tokens in `src/styles/global.css` follow
 shadcn/ui naming (`--background`, `--foreground`, `--muted-foreground`,
 `--accent`, …) even though nothing in the project depends on shadcn. Fonts
 are self-hosted via `@fontsource/*` (Instrument Serif for display, IBM Plex
@@ -80,10 +80,13 @@ because Pages imposes them:
 
 - `public/CNAME` must land in the build output (not just exist at the branch
   root) or the custom domain is dropped on every deploy.
-- `public/.nojekyll` is required — Jekyll otherwise ignores `_`-prefixed
-  paths, which would strip Astro's `_astro/` asset directory.
-- `include-hidden-files: true` on `upload-pages-artifact` is required —
-  without it the action excludes all dot-entries, silently dropping
+- `public/.nojekyll` is insurance rather than a requirement. Jekyll does not
+  run for Actions-based deploys, and the site served correctly for hours while
+  this file was being stripped from the artifact. It matters only if the repo
+  ever reverts to branch-based deploys, where Jekyll would ignore `_`-prefixed
+  paths and strip Astro's `_astro/` asset directory.
+- `include-hidden-files: true` on `upload-pages-artifact` is required.
+  Without it the action excludes all dot-entries, silently dropping
   `.well-known/` (breaking `security.txt`) and `.nojekyll`.
 - `src/pages/404.astro` is the single top-level `404.html` Pages serves for
   every unmatched path across both locales, so it shows both languages at
@@ -92,16 +95,16 @@ because Pages imposes them:
   `actions/configure-pages` will enable Pages if it's off but will not
   convert an existing branch-deploy repo (needs `build_type=workflow` via the
   Pages API, already done once). Changing the Pages source can clear the
-  custom domain — verify `me.tjh.li` still resolves after any such change.
+  custom domain, so verify `me.tjh.li` still resolves after any such change.
 - Pages can't set response headers, so there is deliberately no custom
-  caching policy or CSP — nothing here needs one (static files, zero
+  caching policy or CSP, and nothing here needs one (static files, zero
   third-party requests at runtime).
 
 ## Conventions
 
 - Path alias `~/*` → `src/*` (tsconfig.json), used throughout instead of
   relative imports.
-- German content uses "du" (informal), consistent throughout — see the note
+- German content uses "du" (informal), consistent throughout. See the note
   at the top of `content.ts` before switching any copy to "Sie".
 - `GITHUB_TOKEN` is read from the environment at build time to raise the
   GitHub API rate limit (60/hr → 5000/hr); already wired in CI, not needed
