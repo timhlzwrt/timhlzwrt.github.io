@@ -3,7 +3,7 @@ import { defineConfig } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  site: "https://me.tjh.li",
+  site: "https://tjh.li",
 
   // GitHub Pages serves `de/index.html` at `/de/` and 301-redirects `/de` to
   // it. Being explicit keeps links, canonicals and the sitemap agreeing with

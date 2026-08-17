@@ -28,7 +28,7 @@ export const profile = {
   shortName: "Tim",
   handle: "timhlzwrt",
   domain: "tjh.li",
-  url: "https://me.tjh.li",
+  url: "https://tjh.li",
   city: "Stuttgart",
   email: "hi@tjh.li",
   supportEmail: "help@tjh.li",

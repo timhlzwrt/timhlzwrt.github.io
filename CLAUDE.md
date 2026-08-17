@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Tim's personal site (tjh.li, deployed at `me.tjh.li`). Astro, static output, bilingual
+Tim's personal site (tjh.li, served at the apex; `me.tjh.li` 301s to it). Astro, static output, bilingual
 (English / German). Single-page layout per locale (`#about`, `#tools`, `#privacy`,
 `#work`, `#contact` sections), no client-side framework, minimal inline JS.
 
@@ -95,7 +95,7 @@ because Pages imposes them:
   `actions/configure-pages` will enable Pages if it's off but will not
   convert an existing branch-deploy repo (needs `build_type=workflow` via the
   Pages API, already done once). Changing the Pages source can clear the
-  custom domain, so verify `me.tjh.li` still resolves after any such change.
+  custom domain, so verify `tjh.li` still resolves after any such change.
 - Pages can't set response headers, so there is deliberately no custom
   caching policy or CSP, and nothing here needs one (static files, zero
   third-party requests at runtime).

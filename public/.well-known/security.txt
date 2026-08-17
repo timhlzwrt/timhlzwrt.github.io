@@ -4,4 +4,4 @@
 Contact: mailto:hi@tjh.li
 Expires: 2027-08-16T23:59:00.000Z
 Preferred-Languages: en, de
-Canonical: https://me.tjh.li/.well-known/security.txt
+Canonical: https://tjh.li/.well-known/security.txt

@@ -1,7 +1,7 @@
 # tjh.li
 
 Personal site for Tim Jonas Holzwarth. Astro, static output, bilingual
-(English / German), deployed to GitHub Pages at [me.tjh.li](https://me.tjh.li).
+(English / German), deployed to GitHub Pages at [tjh.li](https://tjh.li).
 
 ## Running it
 
@@ -101,4 +101,4 @@ CSP. Nothing here needs either: static files, zero third-party requests.
 > `actions/configure-pages` enables Pages when it's off but will **not**
 > convert a branch-deploy repo. That needs `build_type=workflow` set on the
 > Pages API. Changing the source can also clear the custom domain, so check
-> `me.tjh.li` is still there afterwards.
+> `tjh.li` is still there afterwards.

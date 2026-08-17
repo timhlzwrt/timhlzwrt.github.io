@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://me.tjh.li/sitemap.txt
+Sitemap: https://tjh.li/sitemap.txt
