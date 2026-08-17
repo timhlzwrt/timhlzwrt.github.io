@@ -1,0 +1,109 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+Tim's personal site (tjh.li, deployed at `me.tjh.li`). Astro, static output, bilingual
+(English / German). Single-page layout per locale (`#about`, `#tools`, `#privacy`,
+`#work`, `#contact` sections), no client-side framework, minimal inline JS.
+
+## Commands
+
+```sh
+npm install
+npm run dev      # http://localhost:4321
+npm run build    # → dist/
+npm run preview  # serve the built output
+npm run check    # astro check: types + template diagnostics
+```
+
+There is no test suite and no lint script. `npm run check` is the correctness
+gate — it fails the build if `en` and `de` content fall out of sync (see
+below), so run it after editing anything under `src/i18n/` or `src/data/`.
+
+## Architecture
+
+**Content and rendering are split.** `src/i18n/content.ts` defines a single
+`Content` interface and two objects (`en`, `de`) typed against it. Every page
+string lives there; nothing is hardcoded in components. Because both locales
+satisfy the same interface, adding a key to one and forgetting the other is a
+type error, not a silent gap. `src/pages/index.astro` and
+`src/pages/de/index.astro` are both just `<Base locale="..."><Home
+locale="..." /></Base>` — the routing split is locale-only, all real markup
+lives in `src/components/`.
+
+**Locale routing** (`src/i18n/utils.ts`): English is unprefixed (`/`), German
+is prefixed (`/de/`). `localePath`/`alternatePath` build cross-locale links
+and hreflang tags consistently; `trailingSlash: "always"` (astro.config.mjs)
+means every generated path must end in `/`. Language detection happens in an
+inline `<script>` in `Base.astro`, run before first paint: it reads
+`navigator.languages`, redirects `/` → `/de/` only when German is preferred
+*ahead of* English, and never overrides a choice already stored in
+`localStorage` under `lang`. The same script also picks the accent colour and
+the light/dark theme before paint, to avoid a flash of the wrong one.
+
+**GitHub metadata is fetched at build time, not runtime**
+(`src/lib/github.ts`). `fetchRepoStats()` hits the GitHub API once per build
+(memoized in-module so Astro's parallel page rendering doesn't issue it
+twice), and the result is baked into the static HTML — visitors' browsers
+never contact GitHub. Every failure path (rate limit, network error,
+non-200) is non-fatal: the build succeeds and the metadata columns are
+simply omitted. `.github/workflows/deploy.yml` runs a nightly scheduled
+rebuild (`workflow_dispatch` also available) so the stats don't go stale;
+GitHub disables scheduled workflows after 60 days of repo inactivity, so if
+dates look stale, check whether the schedule got disabled.
+
+**Work section data** (`src/data/projects.ts`): hand-written name/blurb/links
+per project, with `repo` used to look up live stats from `fetchRepoStats()`.
+`repo` must match the GitHub repo name exactly or that row silently renders
+without metadata (not a build failure).
+
+**Styling**: Tailwind v4 via `@tailwindcss/vite` (no separate Tailwind config
+file — v4 is CSS-driven). Design tokens in `src/styles/global.css` follow
+shadcn/ui naming (`--background`, `--foreground`, `--muted-foreground`,
+`--accent`, …) even though nothing in the project depends on shadcn. Fonts
+are self-hosted via `@fontsource/*` (Instrument Serif for display, IBM Plex
+Mono for everything else), Latin subsets only.
+
+**The accent colour** re-rolls on every page load from six preset hues (see
+the inline script in `Base.astro`), each with a light/dark variant chosen to
+clear 4.5:1 contrast. The palette must be kept in sync in two places:
+`Base.astro` (the `palette` array, what actually runs) and `global.css`
+(`--accent-light`/`--accent-dark`, the no-JS fallback).
+
+## GitHub Pages deploy constraints
+
+Deploy is push-to-`main` via `.github/workflows/deploy.yml` (build → upload
+Pages artifact → deploy). Things the workflow and repo structure account for
+because Pages imposes them:
+
+- `public/CNAME` must land in the build output (not just exist at the branch
+  root) or the custom domain is dropped on every deploy.
+- `public/.nojekyll` is required — Jekyll otherwise ignores `_`-prefixed
+  paths, which would strip Astro's `_astro/` asset directory.
+- `include-hidden-files: true` on `upload-pages-artifact` is required —
+  without it the action excludes all dot-entries, silently dropping
+  `.well-known/` (breaking `security.txt`) and `.nojekyll`.
+- `src/pages/404.astro` is the single top-level `404.html` Pages serves for
+  every unmatched path across both locales, so it shows both languages at
+  once rather than picking one.
+- Pages source must stay set to *GitHub Actions* in Settings → Pages;
+  `actions/configure-pages` will enable Pages if it's off but will not
+  convert an existing branch-deploy repo (needs `build_type=workflow` via the
+  Pages API, already done once). Changing the Pages source can clear the
+  custom domain — verify `me.tjh.li` still resolves after any such change.
+- Pages can't set response headers, so there is deliberately no custom
+  caching policy or CSP — nothing here needs one (static files, zero
+  third-party requests at runtime).
+
+## Conventions
+
+- Path alias `~/*` → `src/*` (tsconfig.json), used throughout instead of
+  relative imports.
+- German content uses "du" (informal), consistent throughout — see the note
+  at the top of `content.ts` before switching any copy to "Sie".
+- `GITHUB_TOKEN` is read from the environment at build time to raise the
+  GitHub API rate limit (60/hr → 5000/hr); already wired in CI, not needed
+  for local dev unless you're iterating on `src/lib/github.ts` and hitting
+  the anonymous limit.
