@@ -26,6 +26,10 @@ const pageDescription = description ?? t.meta.description;
 const canonical = new URL(pathname, Astro.site ?? profile.url).href;
 const alternateHref = new URL(alternatePath(other, pathname), Astro.site ?? profile.url).href;
 
+// Static card, committed rather than generated per page: there is only one
+// page per locale and the artwork is locale-neutral. See scripts/generate-og.mjs.
+const ogImage = new URL("/og.png", Astro.site ?? profile.url).href;
+
 const nav = [
   { label: t.nav.about, href: "#about" },
   { label: t.nav.skills, href: "#tools" },
@@ -66,7 +70,11 @@ const nav = [
     <meta property="og:description" content={pageDescription} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={locale === "de" ? "de_DE" : "en_GB"} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={t.meta.imageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <meta name="theme-color" content="#fbf9f5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#110f0d" media="(prefers-color-scheme: dark)" />
@@ -112,11 +120,11 @@ const nav = [
         // Only ever redirects EN -> DE, once, and never overrides a choice
         // the visitor has already made with the switcher.
         try {
-          var path = location.pathname;
-          var onGerman = path === "/de/" || path.indexOf("/de/") === 0;
+          // Only the English home page. That excludes /de/ implicitly, and
+          // keeps the 404 and the /about/ redirect target out of it.
           var choice = localStorage.getItem("lang");
 
-          if (!choice && !onGerman && path === "/") {
+          if (!choice && location.pathname === "/") {
             var langs = navigator.languages || [navigator.language || ""];
             // Order matters: ["en-US","de-DE"] means English preferred, so
             // whichever of the two appears first wins. Matching "de"
@@ -124,8 +132,10 @@ const nav = [
             for (var i = 0; i < langs.length; i++) {
               var tag = String(langs[i]).toLowerCase();
               if (tag.indexOf("de") === 0) {
-                // replace() so Back doesn't bounce between the two.
-                location.replace("/de/");
+                // replace() so Back doesn't bounce between the two. The hash
+                // carries over so /about/ -> /#about -> /de/#about keeps its
+                // anchor instead of dumping you at the top of the page.
+                location.replace("/de/" + location.hash);
                 break;
               }
               if (tag.indexOf("en") === 0) break;
@@ -186,14 +196,24 @@ const nav = [
             >{profile.email}</a
           >
         </p>
-        <p>
-          {t.footer.built}{" "}
-          <a
-            href={`https://github.com/${profile.handle}/timhlzwrt.github.io`}
-            rel="noopener"
-            class="link-underline">{t.footer.source}</a
-          >.
-        </p>
+        {/*
+          The section nav is desktop-only, so on a phone this link is the only
+          way back to the header without a long scroll.
+        */}
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+          <p>
+            {t.footer.built}{" "}
+            <a
+              href={`https://github.com/${profile.handle}/timhlzwrt.github.io`}
+              class="link-underline">{t.footer.source}</a
+            >.
+          </p>
+          <p>
+            <a href="#main" class="link-underline">
+              <span aria-hidden="true">↑ </span>{t.ui.backToTop}
+            </a>
+          </p>
+        </div>
       </footer>
     </div>
   </body>

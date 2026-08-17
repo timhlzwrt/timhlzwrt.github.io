@@ -16,6 +16,7 @@ npm run dev      # http://localhost:4321
 npm run build    # → dist/
 npm run preview  # serve the built output
 npm run check    # astro check: types + template diagnostics
+npm run og       # redraw public/og.png (needs chromium; run by hand, output is committed)
 ```
 
 There is no test suite and no lint script. `npm run check` is the correctness
@@ -54,6 +55,18 @@ rebuild (`workflow_dispatch` also available) so the stats don't go stale;
 GitHub disables scheduled workflows after 60 days of repo inactivity, so if
 dates look stale, check whether the schedule got disabled.
 
+**The social card** (`public/og.png`) is committed, not built. `npm run og`
+redraws it with `scripts/generate-og.mjs`, which imports the real strings from
+`content.ts` and screenshots a headless Chromium page using the same fonts and
+tokens as the site, so the card can't drift from the page. Rerun it if the
+name, role or `hero.employer` copy changes.
+
+**`security.txt` is generated, not static.** It lives at
+`src/pages/.well-known/security.txt.ts`, not in `public/`, so that RFC 9116's
+`Expires` field rolls six months forward on every build. A static file would
+quietly lapse on a date nothing is watching, and consumers must treat an
+expired file as invalid.
+
 **Work section data** (`src/data/projects.ts`): hand-written name/blurb/links
 per project, with `repo` used to look up live stats from `fetchRepoStats()`.
 `repo` must match the GitHub repo name exactly or that row silently renders
@@ -88,6 +101,10 @@ because Pages imposes them:
 - `include-hidden-files: true` on `upload-pages-artifact` is required.
   Without it the action excludes all dot-entries, silently dropping
   `.well-known/` (breaking `security.txt`) and `.nojekyll`.
+- The `pages` concurrency group uses `cancel-in-progress: false` on purpose.
+  Cancelling can kill `deploy-pages` after it has created a deployment but
+  before it finishes, leaving Pages with a pending deployment that blocks the
+  next one. The nightly rebuild and a push still can't race; the loser queues.
 - `src/pages/404.astro` is the single top-level `404.html` Pages serves for
   every unmatched path across both locales, so it shows both languages at
   once rather than picking one.
@@ -102,6 +119,9 @@ because Pages imposes them:
 
 ## Conventions
 
+- Em-dashes are banned everywhere in this repo, including documentation,
+  commit messages and both locales of the site copy. Use a comma, a colon or
+  a full stop.
 - Path alias `~/*` → `src/*` (tsconfig.json), used throughout instead of
   relative imports.
 - German content uses "du" (informal), consistent throughout. See the note

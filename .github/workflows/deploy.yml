@@ -14,10 +14,13 @@ permissions:
   pages: write
   id-token: write
 
-# Never let a scheduled rebuild race a push.
+# Never let a scheduled rebuild race a push. The loser queues rather than
+# being killed: cancelling mid-deploy can abort deploy-pages after it has
+# created the deployment but before it finishes, which leaves Pages with a
+# pending deployment that blocks the next one.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:

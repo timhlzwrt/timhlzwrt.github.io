@@ -1,13 +1,5 @@
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "./content";
 
-/** Reads the locale out of a pathname. `/de/...` is German, everything else English. */
-export function localeFromPath(pathname: string): Locale {
-  const segment = pathname.split("/").filter(Boolean)[0];
-  return (LOCALES as readonly string[]).includes(segment ?? "")
-    ? (segment as Locale)
-    : DEFAULT_LOCALE;
-}
-
 /**
  * Builds a path for a locale. English is unprefixed (`/about/`), German is
  * prefixed (`/de/about/`). Always returns a trailing slash to match the

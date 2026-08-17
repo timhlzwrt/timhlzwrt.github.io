@@ -14,20 +14,21 @@ import { profile, type Locale } from "~/i18n/content";
 
 export interface RepoStats {
   stars: number;
-  forks: number;
   language: string | null;
   pushedAt: string | null;
-  archived: boolean;
 }
 
 interface GitHubRepo {
   name: string;
   stargazers_count: number;
-  forks_count: number;
   language: string | null;
   pushed_at: string | null;
-  archived: boolean;
 }
+
+const PER_PAGE = 100;
+
+/** 1000 repos is far past plausible; this is a guard against looping forever. */
+const MAX_PAGES = 10;
 
 let cache: Map<string, RepoStats> | null = null;
 
@@ -49,27 +50,34 @@ export async function fetchRepoStats(): Promise<Map<string, RepoStats>> {
   if (token) headers.Authorization = `Bearer ${token}`;
 
   try {
-    const res = await fetch(
-      `https://api.github.com/users/${profile.handle}/repos?per_page=100&sort=updated`,
-      { headers, signal: AbortSignal.timeout(10_000) },
-    );
+    // Paginated: a single page silently truncates once the account passes
+    // PER_PAGE repos, and the row for a missing repo renders without metadata
+    // rather than failing, so the truncation would be invisible. Sorted by
+    // name, not update time, so the page boundaries don't shift mid-walk.
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const res = await fetch(
+        `https://api.github.com/users/${profile.handle}/repos?per_page=${PER_PAGE}&page=${page}&sort=full_name`,
+        { headers, signal: AbortSignal.timeout(10_000) },
+      );
 
-    if (!res.ok) {
-      console.warn(`[github] ${res.status} ${res.statusText}, building without repo metadata.`);
-      cache = stats;
-      return stats;
+      if (!res.ok) {
+        console.warn(`[github] ${res.status} ${res.statusText} on page ${page}, stopping here.`);
+        break;
+      }
+
+      const repos = (await res.json()) as GitHubRepo[];
+      for (const repo of repos) {
+        stats.set(repo.name, {
+          stars: repo.stargazers_count,
+          language: repo.language,
+          pushedAt: repo.pushed_at,
+        });
+      }
+
+      // A short page is the last page.
+      if (repos.length < PER_PAGE) break;
     }
 
-    const repos = (await res.json()) as GitHubRepo[];
-    for (const repo of repos) {
-      stats.set(repo.name, {
-        stars: repo.stargazers_count,
-        forks: repo.forks_count,
-        language: repo.language,
-        pushedAt: repo.pushed_at,
-        archived: repo.archived,
-      });
-    }
     console.log(`[github] loaded metadata for ${stats.size} repos`);
   } catch (error) {
     console.warn(

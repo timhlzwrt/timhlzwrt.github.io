@@ -31,7 +31,6 @@ export const profile = {
   url: "https://tjh.li",
   city: "Stuttgart",
   email: "hi@tjh.li",
-  supportEmail: "help@tjh.li",
   github: "https://github.com/timhlzwrt",
 } as const;
 
@@ -42,7 +41,7 @@ interface SkillGroup {
 
 interface Content {
   htmlLang: string;
-  meta: { title: string; description: string };
+  meta: { title: string; description: string; imageAlt: string };
   nav: { about: string; skills: string; privacy: string; work: string; contact: string };
   ui: {
     switchTo: string;
@@ -68,6 +67,7 @@ const en: Content = {
     title: "Tim Jonas Holzwarth",
     description:
       "Tim Jonas Holzwarth. Training as a Fachinformatiker für Systemintegration at a bank in Stuttgart. Python, Linux, a Proxmox homelab, and a stubborn interest in privacy.",
+    imageAlt: "Tim Jonas Holzwarth, Fachinformatiker für Systemintegration in training, tjh.li",
   },
   nav: { about: "About", skills: "Tools", privacy: "Privacy", work: "Work", contact: "Contact" },
   ui: {
@@ -142,6 +142,8 @@ const de: Content = {
     title: "Tim Jonas Holzwarth",
     description:
       "Tim Jonas Holzwarth, Auszubildender zum Fachinformatiker für Systemintegration bei einer Bank in Stuttgart. Python, Linux, ein Proxmox-Homelab und ein hartnäckiges Interesse an Datenschutz.",
+    imageAlt:
+      "Tim Jonas Holzwarth, Auszubildender zum Fachinformatiker für Systemintegration, tjh.li",
   },
   nav: {
     about: "Über mich",
