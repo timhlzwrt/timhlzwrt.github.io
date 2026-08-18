@@ -16,7 +16,9 @@
   then just points at whichever the current theme needs, so toggling the
   theme picks up the right variant with no extra JavaScript.
 
-  Values below are the fallback for a visitor with JavaScript disabled.
+  Values below are the fallback for a visitor with JavaScript disabled, and
+  are the only remaining copy of entry zero of src/lib/palette.ts, which CSS
+  cannot import from. The other five hues live only in that file.
   All six palette entries clear 4.5:1 against their background in both
   themes, and sit at one lightness so only the hue changes between loads.
 */

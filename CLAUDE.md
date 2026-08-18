@@ -115,11 +115,15 @@ shadcn/ui naming (`--background`, `--foreground`, `--muted-foreground`,
 are self-hosted via `@fontsource/*` (Instrument Serif for display, IBM Plex
 Mono for everything else), Latin subsets only.
 
-**The accent colour** re-rolls on every page load from six preset hues (see
-the inline script in `Base.astro`), each with a light/dark variant chosen to
-clear 4.5:1 contrast. The palette must be kept in sync in two places:
-`Base.astro` (the `palette` array, what actually runs) and `global.css`
-(`--accent-light`/`--accent-dark`, the no-JS fallback).
+**The accent colour** re-rolls on every page load from six preset hues, each
+with a light/dark variant chosen to clear 4.5:1 contrast. All six live in
+`src/lib/palette.ts` and reach the pre-paint script in `Base.astro` through
+`define:vars`, so the array is not written out by hand there any more.
+`scripts/generate-og.mjs` imports the same file for the card. The one
+remaining copy is `--accent-light`/`--accent-dark` in `global.css`, the
+no-JS fallback, because CSS cannot import from TypeScript; it only repeats
+entry zero. Like `content.ts`, `palette.ts` must stay import-free, since the
+og script loads it through Node's type stripping.
 
 ## GitHub Pages deploy constraints
 

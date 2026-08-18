@@ -112,7 +112,8 @@ const stats = await fetchRepoStats();
               linked profiles. noopener is not, without target="_blank". */}
           <a href={link.href} rel="me" class="text-sm link-underline">
             {link.label}
-            <span aria-hidden="true"> ↗</span>
+            {/* The arrow means "this leaves the site". A mailto: doesn't. */}
+            {!link.href.startsWith("mailto:") && <span aria-hidden="true"> ↗</span>}
           </a>
         </li>
       ))

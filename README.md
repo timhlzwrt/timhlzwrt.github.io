@@ -67,19 +67,20 @@ would override a stated preference.
 
 ## The accent colour
 
-Rerolls on every page load from six muted hues, set by the inline script in
-`Base.astro` before first paint. Each hue has a light- and dark-theme
-variant; all twelve were checked to clear 4.5:1 contrast against their
-background, and they share one lightness so only the hue shifts between
-loads. The page never looks heavier or lighter, just differently tinted.
+Rerolls on every page load, set by the inline script in `Base.astro` before
+first paint. Each hue has a light- and dark-theme variant; all twelve were
+checked to clear 4.5:1 contrast against their background, and they share one
+lightness so only the hue shifts between loads. The page never looks heavier
+or lighter, just differently tinted.
 
 The T, J and H of the name are tinted with it, which is the whole reason the
 domain is `tjh.li`.
 
-Change the palette in two places, kept deliberately in sync:
-
-- `Base.astro`: the `palette` array in the inline script (what actually runs)
-- `global.css`: `--accent-light` / `--accent-dark` (the no-JavaScript fallback)
+**Edit the hues in `src/lib/palette.ts`.** The pre-paint script and the
+social card both read that file. The only value repeated anywhere else is
+`--accent-light` / `--accent-dark` in `global.css`, which is the
+no-JavaScript fallback and needs just the first entry, because CSS cannot
+import from TypeScript.
 
 ## Design
 

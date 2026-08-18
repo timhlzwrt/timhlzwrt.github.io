@@ -18,6 +18,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { NAME_PARTS, content, profile } from "../src/i18n/content.ts";
+import { PALETTE } from "../src/lib/palette.ts";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const OUT = join(root, "public", "og.png");
@@ -34,9 +35,9 @@ const mono500 = font("ibm-plex-mono", "ibm-plex-mono-latin-500-normal.woff2");
 
 const t = content.en;
 
-// Hue 38 is palette[0] in Base.astro, the same one the no-JS fallback uses.
-// The card can't reroll per view, so it takes the default rather than a
-// colour a given visitor may never see.
+// The card can't reroll per view, so it takes the first palette entry, the
+// same one the no-JS fallback in global.css uses, rather than a colour a
+// given visitor may never see.
 const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -63,7 +64,7 @@ const html = `<!doctype html>
     --foreground: oklch(0.22 0.012 60);
     --muted-foreground: oklch(0.46 0.012 65);
     --rule: oklch(0.855 0.012 75);
-    --accent: oklch(0.52 0.09 38);
+    --accent: ${PALETTE[0][0]};
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }

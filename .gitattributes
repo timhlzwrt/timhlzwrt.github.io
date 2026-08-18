@@ -1,2 +1,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# The Work section's language column is read from GitHub's language bar at
+# build time (src/lib/github.ts), and that bar counts bytes. content.ts is a
+# large copy deck and the build-time fetch modules add more, which together
+# pushed this repo's label off "Astro" and onto "TypeScript". Excluding .ts
+# from the count pins it back to the framework, which is the more useful
+# thing for that row to say. Delete this line to let the real byte counts win.
+*.ts linguist-detectable=false
