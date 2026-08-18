@@ -2,6 +2,7 @@
 import "~/styles/global.css";
 import { content, profile, type Locale } from "~/i18n/content";
 import { alternatePath, otherLocale } from "~/i18n/utils";
+import { fetchLastGame } from "~/lib/steam";
 import ThemeToggle from "~/components/ThemeToggle.astro";
 import LangSwitch from "~/components/LangSwitch.astro";
 
@@ -52,6 +53,11 @@ const personLd = {
   },
   sameAs: t.contact.links.map((link) => link.href).filter((href) => !href.startsWith("mailto:")),
 };
+
+// Baked in at build time like the repo stats, not fetched by the visitor.
+// Null whenever the key is missing, the profile is private or the API is
+// unhappy, in which case the line is simply omitted.
+const lastGame = await fetchLastGame();
 
 const nav = [
   { label: t.nav.about, href: "#about" },
@@ -217,31 +223,48 @@ const nav = [
         <slot />
       </main>
 
-      <footer
-        class="mt-24 flex flex-col gap-3 border-t border-rule py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
-      >
-        <p>
-          {profile.city} · <a href={`mailto:${profile.email}`} class="link-underline"
-            >{profile.email}</a
-          >
-        </p>
+      <footer class="mt-24 border-t border-rule py-8 text-xs text-muted-foreground">
         {/*
-          The section nav is desktop-only, so on a phone this link is the only
-          way back to the header without a long scroll.
+          Fetched when the page was built, not when it was opened, exactly
+          like the repo metadata in the work section. "Last played" rather
+          than "now playing" because the nightly rebuild means this can be a
+          day behind, and a static page can't honestly claim live status.
         */}
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+        {
+          lastGame && (
+            <p class="mb-5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span class="label">{t.footer.lastPlayed}</span>
+              <a href={lastGame.url} class="link-underline">
+                {lastGame.name}
+              </a>
+            </p>
+          )
+        }
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            {t.footer.built}{" "}
-            <a
-              href={`https://github.com/${profile.handle}/timhlzwrt.github.io`}
-              class="link-underline">{t.footer.source}</a
-            >.
+            {profile.city} · <a href={`mailto:${profile.email}`} class="link-underline"
+              >{profile.email}</a
+            >
           </p>
-          <p>
-            <a href="#main" class="link-underline">
-              <span aria-hidden="true">↑ </span>{t.ui.backToTop}
-            </a>
-          </p>
+          {/*
+            The section nav is desktop-only, so on a phone this link is the
+            only way back to the header without a long scroll.
+          */}
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+            <p>
+              {t.footer.built}{" "}
+              <a
+                href={`https://github.com/${profile.handle}/timhlzwrt.github.io`}
+                class="link-underline">{t.footer.source}</a
+              >.
+            </p>
+            <p>
+              <a href="#main" class="link-underline">
+                <span aria-hidden="true">↑ </span>{t.ui.backToTop}
+              </a>
+            </p>
+          </div>
         </div>
       </footer>
     </div>

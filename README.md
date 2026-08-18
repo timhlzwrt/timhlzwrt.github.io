@@ -31,6 +31,24 @@ HTML, so they can't go stale in the source and a visitor's browser never
 contacts GitHub. A nightly Actions rebuild keeps them current. If the API
 call fails, the build succeeds and those columns are simply omitted.
 
+## The "last played" line
+
+The footer shows the last game played on Steam, fetched **at build time** and
+baked into the HTML like the repo metadata, so no visitor request ever
+reaches Steam. Needs a `STEAM_API_KEY` repo secret
+([get one here](https://steamcommunity.com/dev/apikey)) and `profile.steam`
+in `content.ts`, which takes either a SteamID64 or the vanity name from your
+profile URL. Without the key the build succeeds and the line is left out,
+which is what local dev does.
+
+Your Steam profile's **game details must be public**, otherwise the API
+returns an empty response and the line stays hidden.
+
+It says "last played" rather than "now playing" on purpose: the site is
+static and rebuilds nightly, so the line can be up to a day behind. Steam can
+report live in-game status, but a nightly build would only ever catch you
+mid-morning.
+
 ## Languages
 
 English is at `/`, German at `/de/`. Both are fully static and crawlable,

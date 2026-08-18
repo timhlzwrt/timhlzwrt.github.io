@@ -67,6 +67,30 @@ rebuild (`workflow_dispatch` also available) so the stats don't go stale;
 GitHub disables scheduled workflows after 60 days of repo inactivity, so if
 dates look stale, check whether the schedule got disabled.
 
+**The "last played" line** (`src/lib/steam.ts`) follows the same contract as
+the GitHub metadata: fetched once per build, memoized, baked into the footer,
+so visitors never contact Steam. It reads `STEAM_API_KEY` from the
+environment and `profile.steam` for the account, accepting either a
+SteamID64 or the vanity name from the profile URL and resolving the latter
+via `ResolveVanityURL`. With no key (the normal local-dev case) it warns and
+the line is omitted; every other failure path behaves the same way, so a
+private profile or a rate limit costs the line and not the deploy.
+
+Three things worth knowing before touching it. The label is deliberately
+"last played" and not "now playing": the page is static and rebuilt nightly,
+so it can be a day behind. Steam *does* expose live in-game status through
+`GetPlayerSummaries`, but at build time that only ever captures 06:17 UTC,
+which is why it is not used. And it queries `GetOwnedGames` rather than the
+smaller `GetRecentlyPlayedGames`, because every entry there carries an
+explicit `rtime_last_played` to sort on rather than an assumption about
+response order, and because the two-week window on the recently-played
+endpoint would make the line disappear during any break instead of just
+going stale.
+
+The profile's game details have to be set to Public. A private profile is
+not an API error: Steam answers 200 with an empty `response` object, which
+is handled as "nothing to show".
+
 **The social card** (`public/og.png`) is committed, not built. `npm run og`
 redraws it with `scripts/generate-og.mjs`, which imports the real strings from
 `content.ts` and screenshots a headless Chromium page using the same fonts and
