@@ -29,11 +29,14 @@ export interface Game {
   name: string;
   appid: number;
   url: string;
+  /** Lifetime hours, rounded. Zero for a game that is owned but barely touched. */
+  hours: number;
 }
 
 interface SteamGame {
   appid?: number;
   name?: string;
+  playtime_forever?: number;
   rtime_last_played?: number;
 }
 
@@ -141,6 +144,9 @@ export async function fetchLastGame(): Promise<Game | null> {
       name: latest.name.trim(),
       appid: latest.appid,
       url: `https://store.steampowered.com/app/${latest.appid}/`,
+      // Steam counts in minutes. Rounded down, so a game shows 0 h until an
+      // hour is actually on the clock and the figure is never flattering.
+      hours: Math.floor((latest.playtime_forever ?? 0) / 60),
     };
     console.log(`[steam] last played: ${cache.name}`);
   } catch (error) {
