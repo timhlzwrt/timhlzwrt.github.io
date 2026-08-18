@@ -32,6 +32,13 @@ export const profile = {
   city: "Stuttgart",
   email: "hi@tjh.li",
   github: "https://github.com/timhlzwrt",
+  /**
+   * Backs the footer's last-played line, see src/lib/steam.ts. This is the
+   * SteamID64 for steamcommunity.com/id/redacted: the vanity name also
+   * works and is resolved automatically, but the numeric id never changes if
+   * the vanity URL does, and it saves a lookup request on every build.
+   */
+  steam: "REDACTED",
 } as const;
 
 /**
@@ -103,7 +110,7 @@ interface Content {
   work: { heading: string; note: string };
   contact: { heading: string; body: string; links: { label: string; href: string }[] };
   notFound: { label: string; body: string; back: string };
-  footer: { built: string; source: string };
+  footer: { built: string; source: string; lastPlayed: string };
 }
 
 const en: Content = {
@@ -178,7 +185,7 @@ const en: Content = {
     body: "Wrong address, or something that used to be here and is not any more.",
     back: "Back to the start",
   },
-  footer: { built: "Built with Astro.", source: "Source" },
+  footer: { built: "Built with Astro.", source: "Source", lastPlayed: "Last played" },
 };
 
 const de: Content = {
@@ -260,7 +267,7 @@ const de: Content = {
     body: "Falsche Adresse oder etwas, das es mal gab und jetzt nicht mehr.",
     back: "Zurück zum Anfang",
   },
-  footer: { built: "Gebaut mit Astro.", source: "Quellcode" },
+  footer: { built: "Gebaut mit Astro.", source: "Quellcode", lastPlayed: "Zuletzt gespielt" },
 };
 
 export const content: Record<Locale, Content> = { en, de };
