@@ -3,6 +3,7 @@ import "~/styles/global.css";
 import { content, profile, type Locale } from "~/i18n/content";
 import { alternatePath, otherLocale } from "~/i18n/utils";
 import { fetchLastGame } from "~/lib/steam";
+import { PALETTE } from "~/lib/palette";
 import ThemeToggle from "~/components/ThemeToggle.astro";
 import LangSwitch from "~/components/LangSwitch.astro";
 
@@ -119,7 +120,7 @@ const nav = [
       would otherwise cause a visible flash: pick the theme, roll the accent
       colour, and send German speakers to the German page.
     */}
-    <script is:inline>
+    <script is:inline define:vars={{ palette: PALETTE }}>
       (function () {
         var root = document.documentElement;
 
@@ -135,16 +136,9 @@ const nav = [
         }
 
         // -- accent -----------------------------------------------------
-        // Six muted hues at one lightness, each verified to clear 4.5:1
-        // against its background. Only the hue changes between loads.
-        var palette = [
-          ["oklch(0.52 0.09 38)", "oklch(0.745 0.1 38)"],
-          ["oklch(0.52 0.09 80)", "oklch(0.745 0.1 80)"],
-          ["oklch(0.52 0.09 145)", "oklch(0.745 0.1 145)"],
-          ["oklch(0.52 0.085 200)", "oklch(0.745 0.1 200)"],
-          ["oklch(0.52 0.09 275)", "oklch(0.745 0.1 275)"],
-          ["oklch(0.52 0.09 350)", "oklch(0.745 0.1 350)"],
-        ];
+        // `palette` is injected by define:vars from src/lib/palette.ts, so
+        // the hues live in one place rather than being copied in here by
+        // hand. Only the hue changes between loads.
         var pick = palette[Math.floor(Math.random() * palette.length)];
         root.style.setProperty("--accent-light", pick[0]);
         root.style.setProperty("--accent-dark", pick[1]);

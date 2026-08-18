@@ -61,8 +61,8 @@ export const projects: Project[] = [
     repo: "timhlzwrt.github.io",
     status: "live",
     blurb: {
-      en: "This site. Astro and hand-written CSS, no tracking of any kind, and an accent colour that picks itself at random on every load. The metadata in this table is fetched from GitHub when the site builds, not when you visit.",
-      de: "Diese Seite. Astro und handgeschriebenes CSS, kein Tracking jeglicher Art und eine Akzentfarbe, die sich bei jedem Laden neu auswürfelt. Die Daten in dieser Tabelle werden beim Bauen der Seite von GitHub geholt, nicht bei deinem Besuch.",
+      en: "This site. Astro and Tailwind, no tracking of any kind, and an accent colour that picks itself at random on every load. The metadata in this table is fetched from GitHub when the site builds, not when you visit.",
+      de: "Diese Seite. Astro und Tailwind, kein Tracking jeglicher Art und eine Akzentfarbe, die sich bei jedem Laden neu auswürfelt. Die Daten in dieser Tabelle werden beim Bauen der Seite von GitHub geholt, nicht bei deinem Besuch.",
     },
     links: [{ label: SOURCE, href: "https://github.com/timhlzwrt/timhlzwrt.github.io" }],
   },
