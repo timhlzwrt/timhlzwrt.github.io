@@ -97,6 +97,12 @@ redraws it with `scripts/generate-og.mjs`, which imports the real strings from
 tokens as the site, so the card can't drift from the page. Rerun it if the
 name, role or `hero.employer` copy changes.
 
+**Brand assets** (`public/brand/`) are committed, not built, exactly like the
+social card. `npm run brand` redraws them with `scripts/generate-brand.mjs`,
+which imports `content.ts` and `palette.ts` so the avatars and banners cannot
+drift from the site. Everything is locked to `PALETTE[0]`, since a profile
+picture cannot re-roll its accent the way the site does. See BRAND.md.
+
 **`security.txt` is generated, not static.** It lives at
 `src/pages/.well-known/security.txt.ts`, not in `public/`, so that RFC 9116's
 `Expires` field rolls six months forward on every build. A static file would

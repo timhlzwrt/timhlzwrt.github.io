@@ -92,6 +92,12 @@ Tokens in `src/styles/global.css` follow shadcn/ui naming (`--background`,
 shadcn, but `npx shadcn init` would inherit this palette rather than the
 default one.
 
+## Brand assets
+
+`npm run brand` redraws the avatars and social banners in `public/brand/`
+from the same fonts, colours and copy the site uses. Output is committed.
+See [BRAND.md](BRAND.md).
+
 ## Deploying
 
 Pushes to `main` build and deploy via `.github/workflows/deploy.yml`.
