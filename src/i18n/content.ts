@@ -32,7 +32,6 @@ export const profile = {
   city: "Stuttgart",
   email: "hi@tjh.li",
   github: "https://github.com/timhlzwrt",
-  steam: "REDACTED",
 } as const;
 
 /**

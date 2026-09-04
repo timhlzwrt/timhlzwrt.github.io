@@ -35,11 +35,12 @@ call fails, the build succeeds and those columns are simply omitted.
 
 The footer shows the last game played on Steam, fetched **at build time** and
 baked into the HTML like the repo metadata, so no visitor request ever
-reaches Steam. Needs a `STEAM_API_KEY` repo secret
-([get one here](https://steamcommunity.com/dev/apikey)) and `profile.steam`
-in `content.ts`, which takes either a SteamID64 or the vanity name from your
-profile URL. Without the key the build succeeds and the line is left out,
-which is what local dev does.
+reaches Steam. Needs two repo secrets: `STEAM_API_KEY`
+([get one here](https://steamcommunity.com/dev/apikey)) and `STEAM_ACCOUNT`,
+which takes either a SteamID64 or the vanity name from your profile URL. The
+account is a secret rather than a value in `content.ts` so the public repo
+carries no SteamID. Without either the build succeeds and the line is left
+out, which is what local dev does.
 
 Your Steam profile's **game details must be public**, otherwise the API
 returns an empty response and the line stays hidden.

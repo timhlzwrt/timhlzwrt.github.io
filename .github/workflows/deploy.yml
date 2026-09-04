@@ -46,9 +46,11 @@ jobs:
         env:
           # Lifts the GitHub API rate limit from 60/hr to 5000/hr.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Backs the footer's last-played line. If the secret is unset the
+          # Back the footer's last-played line. Both are kept out of source so
+          # the public repo carries no SteamID. If either secret is unset the
           # build still succeeds and the line is simply left out.
           STEAM_API_KEY: ${{ secrets.STEAM_API_KEY }}
+          STEAM_ACCOUNT: ${{ secrets.STEAM_ACCOUNT }}
 
       - uses: actions/upload-pages-artifact@v5
         with:

@@ -18,12 +18,14 @@
  * than just going quietly stale. The cost is a larger response, which is
  * irrelevant once a night at build time.
  *
- * Every failure path is non-fatal. No key, a rejected key, a private
- * profile, a rate limit or an offline build machine all cost the footer
- * line, not the deploy.
+ * Every failure path is non-fatal. No key, no account, a rejected key, a
+ * private profile, a rate limit or an offline build machine all cost the
+ * footer line, not the deploy.
+ *
+ * The account (`STEAM_ACCOUNT`) is read from the environment rather than
+ * committed, so a public repo does not carry a SteamID. Locally unset is the
+ * normal case and behaves like a missing key.
  */
-
-import { profile } from "~/i18n/content";
 
 export interface Game {
   name: string;
@@ -61,22 +63,22 @@ let cache: Game | null | undefined;
  * (steamcommunity.com/id/<name>), because the vanity name is the half most
  * people actually know. Returns null if it can't be resolved.
  */
-async function resolveSteamId(key: string): Promise<string | null> {
-  if (STEAM_ID64.test(profile.steam)) return profile.steam;
+async function resolveSteamId(key: string, account: string): Promise<string | null> {
+  if (STEAM_ID64.test(account)) return account;
 
   const url = new URL(`${API}/ISteamUser/ResolveVanityURL/v1/`);
-  url.search = new URLSearchParams({ key, vanityurl: profile.steam }).toString();
+  url.search = new URLSearchParams({ key, vanityurl: account }).toString();
 
   const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) {
-    console.warn(`[steam] ${res.status} ${res.statusText} resolving "${profile.steam}".`);
+    console.warn(`[steam] ${res.status} ${res.statusText} resolving "${account}".`);
     return null;
   }
 
   // success === 1 is a match; 42 is "no such vanity URL".
   const data = (await res.json()) as VanityResponse;
   if (data.response?.success !== 1 || !data.response.steamid) {
-    console.warn(`[steam] no profile matches the vanity name "${profile.steam}".`);
+    console.warn(`[steam] no profile matches the vanity name "${account}".`);
     return null;
   }
 
@@ -95,8 +97,14 @@ export async function fetchLastGame(): Promise<Game | null> {
     return cache;
   }
 
+  const account = process.env.STEAM_ACCOUNT;
+  if (!account) {
+    console.warn("[steam] no STEAM_ACCOUNT, building without the last-played line.");
+    return cache;
+  }
+
   try {
-    const steamid = await resolveSteamId(key);
+    const steamid = await resolveSteamId(key, account);
     if (!steamid) return cache;
 
     const url = new URL(`${API}/IPlayerService/GetOwnedGames/v1/`);

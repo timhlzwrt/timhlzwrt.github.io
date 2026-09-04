@@ -75,12 +75,14 @@ dates look stale, check whether the schedule got disabled.
 
 **The "last played" line** (`src/lib/steam.ts`) follows the same contract as
 the GitHub metadata: fetched once per build, memoized, baked into the footer,
-so visitors never contact Steam. It reads `STEAM_API_KEY` from the
-environment and `profile.steam` for the account, accepting either a
-SteamID64 or the vanity name from the profile URL and resolving the latter
-via `ResolveVanityURL`. With no key (the normal local-dev case) it warns and
-the line is omitted; every other failure path behaves the same way, so a
-private profile or a rate limit costs the line and not the deploy.
+so visitors never contact Steam. It reads both `STEAM_API_KEY` and
+`STEAM_ACCOUNT` from the environment, the latter accepting either a SteamID64
+or the vanity name from the profile URL and resolving the latter via
+`ResolveVanityURL`. The account is an env var rather than a value in
+`content.ts` on purpose: the repo is public and should carry no SteamID.
+With either unset (the normal local-dev case) it warns and the line is
+omitted; every other failure path behaves the same way, so a private profile
+or a rate limit costs the line and not the deploy.
 
 Three things worth knowing before touching it. The label is deliberately
 "last played" and not "now playing": the page is static and rebuilt nightly,
