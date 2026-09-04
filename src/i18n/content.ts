@@ -32,12 +32,6 @@ export const profile = {
   city: "Stuttgart",
   email: "hi@tjh.li",
   github: "https://github.com/timhlzwrt",
-  /**
-   * Backs the footer's last-played line, see src/lib/steam.ts. This is the
-   * SteamID64 for steamcommunity.com/id/redacted: the vanity name also
-   * works and is resolved automatically, but the numeric id never changes if
-   * the vanity URL does, and it saves a lookup request on every build.
-   */
   steam: "REDACTED",
 } as const;
 
