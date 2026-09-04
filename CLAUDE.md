@@ -31,8 +31,10 @@ string lives there; nothing is hardcoded in components. Because both locales
 satisfy the same interface, adding a key to one and forgetting the other is a
 type error, not a silent gap. `src/pages/index.astro` and
 `src/pages/de/index.astro` are both just `<Base locale="..."><Home
-locale="..." /></Base>`. The routing split is locale-only, all real markup
-lives in `src/components/`.
+locale="..." /></Base>` (`Base` is `src/layouts/Base.astro`, the head /
+header / footer / pre-paint script; `Home` and everything else is in
+`src/components/`). The routing split is locale-only, all real markup lives
+in `src/components/`.
 
 **Some copy is derived, not written.** `content.ts` computes `trainingYear()`
 from `TRAINING_START` and picks the opening clause of the apprenticeship
@@ -55,6 +57,10 @@ inline `<script>` in `Base.astro`, run before first paint: it reads
 *ahead of* English, and never overrides a choice already stored in
 `localStorage` under `lang`. The same script also picks the accent colour and
 the light/dark theme before paint, to avoid a flash of the wrong one.
+
+`astro.config.mjs` carries one permanent `redirects` entry: `/about/` was a
+real page that briefly went live and now 301s to `/#about`. Keep it. The
+`me.tjh.li` → apex 301 is a DNS/Pages concern, not in this repo.
 
 **GitHub metadata is fetched at build time, not runtime**
 (`src/lib/github.ts`). `fetchRepoStats()` hits the GitHub API once per build
