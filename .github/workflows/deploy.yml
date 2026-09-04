@@ -25,6 +25,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # A cache-warm install and a sub-second Astro build. If this is still
+    # running after ten minutes something is wedged (npm registry stalls have
+    # done it before): fail fast instead of holding the runner for six hours.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -40,7 +44,11 @@ jobs:
         with:
           enablement: true
 
-      - run: npm ci
+      # `--prefer-offline` serves every tarball from the setup-node cache and
+      # only reaches the network for a genuine miss; `--no-audit`/`--no-fund`
+      # drop the two registry calls that were stalling the step for minutes
+      # (also set in .npmrc, kept here so the intent is visible at the step).
+      - run: npm ci --prefer-offline --no-audit --no-fund
 
       - run: npm run build
         env:
