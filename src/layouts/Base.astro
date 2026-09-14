@@ -139,8 +139,12 @@ const nav = [
         // -- accent -----------------------------------------------------
         // `palette` is injected by define:vars from src/lib/palette.ts, so
         // the hues live in one place rather than being copied in here by
-        // hand. Only the hue changes between loads.
-        var pick = palette[Math.floor(Math.random() * palette.length)];
+        // hand. Picked from the day, not the load: status.tjh.li carries
+        // the same array and the same formula, so the two sites land on
+        // the same hue for as long as the date does, no cookie and no
+        // request between them.
+        var dayIndex = Math.floor(Date.now() / 86400000) % palette.length;
+        var pick = palette[dayIndex];
         root.style.setProperty("--accent-light", pick[0]);
         root.style.setProperty("--accent-dark", pick[1]);
 
