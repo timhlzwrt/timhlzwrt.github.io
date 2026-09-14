@@ -1,0 +1,49 @@
+---
+/**
+ * The one piece of this footer that is genuinely live rather than baked in
+ * at build time: infrastructure status is only useful if it reflects right
+ * now, and a stale "all clear" during a real outage would be worse than no
+ * widget at all. Fetches status.tjh.li's own summary endpoint client-side;
+ * on any failure it hides itself rather than getting stuck on "checking".
+ */
+interface Props {
+  label: string;
+  checking: string;
+  operational: string;
+  issues: string;
+}
+
+const { label, checking, operational, issues } = Astro.props;
+---
+
+<div
+  id="status-row"
+  class="mb-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-5"
+>
+  <span class="label">{label}</span>
+  <a href="https://status.tjh.li" class="link-underline flex items-center gap-1.5 text-sm">
+    <span
+      id="status-dot"
+      class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40"
+      aria-hidden="true"
+    ></span>
+    <span id="status-text">{checking}</span>
+  </a>
+</div>
+
+<script define:vars={{ operational, issues }}>
+  fetch("https://status.tjh.li/api/summary", { cache: "no-store" })
+    .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+    .then((data) => {
+      const dot = document.getElementById("status-dot");
+      const text = document.getElementById("status-text");
+      if (!dot || !text) return;
+      const up = data.overall === "up";
+      dot.className = `h-1.5 w-1.5 rounded-full ${up ? "bg-accent" : "bg-destructive"}`;
+      text.textContent = up ? operational : issues;
+    })
+    .catch(() => {
+      const row = document.getElementById("status-row");
+      if (row) row.hidden = true;
+    });
+</script>

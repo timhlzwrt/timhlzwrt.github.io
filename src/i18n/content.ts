@@ -103,7 +103,12 @@ interface Content {
   work: { heading: string; note: string };
   contact: { heading: string; body: string; links: { label: string; href: string }[] };
   notFound: { label: string; body: string; back: string };
-  footer: { built: string; source: string; lastPlayed: string };
+  footer: {
+    built: string;
+    source: string;
+    lastPlayed: string;
+    status: { label: string; checking: string; operational: string; issues: string };
+  };
 }
 
 const en: Content = {
@@ -178,7 +183,17 @@ const en: Content = {
     body: "Wrong address, or something that used to be here and is not any more.",
     back: "Back to the start",
   },
-  footer: { built: "Built with Astro.", source: "Source", lastPlayed: "Last played" },
+  footer: {
+    built: "Built with Astro.",
+    source: "Source",
+    lastPlayed: "Last played",
+    status: {
+      label: "Status",
+      checking: "Checking…",
+      operational: "All systems operational",
+      issues: "Degraded performance",
+    },
+  },
 };
 
 const de: Content = {
@@ -260,7 +275,17 @@ const de: Content = {
     body: "Falsche Adresse oder etwas, das es mal gab und jetzt nicht mehr.",
     back: "Zurück zum Anfang",
   },
-  footer: { built: "Gebaut mit Astro.", source: "Quellcode", lastPlayed: "Zuletzt gespielt" },
+  footer: {
+    built: "Gebaut mit Astro.",
+    source: "Quellcode",
+    lastPlayed: "Zuletzt gespielt",
+    status: {
+      label: "Status",
+      checking: "Wird geprüft…",
+      operational: "Alle Systeme betriebsbereit",
+      issues: "Beeinträchtigt",
+    },
+  },
 };
 
 export const content: Record<Locale, Content> = { en, de };

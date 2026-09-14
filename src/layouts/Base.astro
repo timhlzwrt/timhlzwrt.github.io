@@ -6,6 +6,7 @@ import { fetchLastGame } from "~/lib/steam";
 import { PALETTE } from "~/lib/palette";
 import ThemeToggle from "~/components/ThemeToggle.astro";
 import LangSwitch from "~/components/LangSwitch.astro";
+import StatusWidget from "~/components/StatusWidget.astro";
 
 interface Props {
   locale: Locale;
@@ -239,6 +240,13 @@ const nav = [
             </div>
           )
         }
+
+        <StatusWidget
+          label={t.footer.status.label}
+          checking={t.footer.status.checking}
+          operational={t.footer.status.operational}
+          issues={t.footer.status.issues}
+        />
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p>
