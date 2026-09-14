@@ -8,8 +8,14 @@
  * cannot import from TypeScript, and it only needs entry zero.
  *
  * Every pair clears 4.5:1 against its own theme's background, and they share
- * one lightness so a reload changes the hue without changing how heavy the
- * page looks. Hue 200 carries slightly less chroma to hold that line.
+ * one lightness so picking a new hue never changes how heavy the page looks.
+ * Hue 200 carries slightly less chroma to hold that line.
+ *
+ * The hue is picked from the date, not the load (see Base.astro), so it's
+ * stable across a day rather than per reload now. status.tjh.li keeps its
+ * own copy of this exact array plus the same day-index formula, so the two
+ * sites land on the same hue without a cookie or a request between them.
+ * If this array changes, that copy needs updating by hand to match.
  *
  * Keep this file import-free: scripts/generate-og.mjs loads it through Node's
  * type stripping, which does not understand the `~/*` alias.
