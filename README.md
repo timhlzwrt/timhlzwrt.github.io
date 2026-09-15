@@ -68,11 +68,12 @@ would override a stated preference.
 
 ## The accent colour
 
-Rerolls on every page load, set by the inline script in `Base.astro` before
-first paint. Each hue has a light- and dark-theme variant; all twelve were
-checked to clear 4.5:1 contrast against their background, and they share one
-lightness so only the hue shifts between loads. The page never looks heavier
-or lighter, just differently tinted.
+Picks one of six hues by UTC calendar day, set by the inline script in
+`Base.astro` before first paint, so it's fixed for the whole day rather than
+changing on every reload. Each hue has a light- and dark-theme variant; all
+twelve were checked to clear 4.5:1 contrast against their background, and
+they share one lightness so only the hue shifts between days. The page never
+looks heavier or lighter, just differently tinted.
 
 The T, J and H of the name are tinted with it, which is the whole reason the
 domain is `tjh.li`.

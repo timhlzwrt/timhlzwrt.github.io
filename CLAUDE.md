@@ -129,11 +129,17 @@ shadcn/ui naming (`--background`, `--foreground`, `--muted-foreground`,
 are self-hosted via `@fontsource/*` (Instrument Serif for display, IBM Plex
 Mono for everything else), Latin subsets only.
 
-**The accent colour** re-rolls on every page load from six preset hues, each
-with a light/dark variant chosen to clear 4.5:1 contrast. All six live in
+**The accent colour** picks one of six preset hues by UTC calendar day
+(`Math.floor(Date.now() / 86400000) % palette.length`), each with a
+light/dark variant chosen to clear 4.5:1 contrast, so it's fixed for the
+whole day rather than re-rolling per page load. All six live in
 `src/lib/palette.ts` and reach the pre-paint script in `Base.astro` through
 `define:vars`, so the array is not written out by hand there any more.
-`scripts/generate-og.mjs` imports the same file for the card. The one
+`scripts/generate-og.mjs` imports the same file for the card. status.tjh.li
+(a separate repo) keeps a hand-copied duplicate of this array and the same
+day-index formula so the two sites land on the same hue with no cookie or
+cross-origin request; if this palette or formula ever changes, that copy
+needs updating too or the sites will drift apart. The one
 remaining copy is `--accent-light`/`--accent-dark` in `global.css`, the
 no-JS fallback, because CSS cannot import from TypeScript; it only repeats
 entry zero. Like `content.ts`, `palette.ts` must stay import-free, since the
