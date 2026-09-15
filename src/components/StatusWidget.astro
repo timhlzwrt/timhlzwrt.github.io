@@ -38,9 +38,19 @@ const { label, checking, operational, issues } = Astro.props;
       const dot = document.getElementById("status-dot");
       const text = document.getElementById("status-text");
       if (!dot || !text) return;
-      const up = data.overall === "up";
-      dot.className = `h-1.5 w-1.5 rounded-full ${up ? "bg-accent" : "bg-destructive"}`;
-      text.textContent = up ? operational : issues;
+      // Only "up"/"down" are recognised; anything else (a malformed body, a
+      // renamed field, a status.tjh.li change this repo doesn't know about)
+      // hides the row instead of asserting "Degraded performance" on a guess.
+      if (data.overall === "up") {
+        dot.className = "h-1.5 w-1.5 rounded-full bg-accent";
+        text.textContent = operational;
+      } else if (data.overall === "down") {
+        dot.className = "h-1.5 w-1.5 rounded-full bg-destructive";
+        text.textContent = issues;
+      } else {
+        const row = document.getElementById("status-row");
+        if (row) row.hidden = true;
+      }
     })
     .catch(() => {
       const row = document.getElementById("status-row");

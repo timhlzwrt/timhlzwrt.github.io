@@ -29,8 +29,22 @@ export const statusLabel: Record<Status, Record<Locale, string>> = {
 };
 
 const SOURCE = { en: "Source", de: "Quellcode" };
+const LIVE = { en: "Live", de: "Live" };
 
 export const projects: Project[] = [
+  {
+    name: "Geopolitical Atlas",
+    repo: "atlas",
+    status: "live",
+    blurb: {
+      en: "A 3D globe for exploring every country's statistics and post-1945 history, leadership records included. Every fact is sourced from the World Bank, Wikidata and Natural Earth; nothing is fabricated.",
+      de: "Ein 3D-Globus zum Erkunden der Statistiken und der Geschichte seit 1945 jedes Landes, inklusive Führungsdaten. Jede Angabe stammt aus Weltbank, Wikidata und Natural Earth, nichts ist erfunden.",
+    },
+    links: [
+      { label: LIVE, href: "https://atlas.tjh.li" },
+      { label: SOURCE, href: "https://github.com/timhlzwrt/atlas" },
+    ],
+  },
   {
     name: "dsbix",
     repo: "dsbix",
@@ -61,8 +75,8 @@ export const projects: Project[] = [
     repo: "timhlzwrt.github.io",
     status: "live",
     blurb: {
-      en: "This site. Astro and Tailwind, no tracking of any kind, and an accent colour that picks itself at random on every load. The metadata in this table is fetched from GitHub when the site builds, not when you visit.",
-      de: "Diese Seite. Astro und Tailwind, kein Tracking jeglicher Art und eine Akzentfarbe, die sich bei jedem Laden neu auswürfelt. Die Daten in dieser Tabelle werden beim Bauen der Seite von GitHub geholt, nicht bei deinem Besuch.",
+      en: "This site. Astro and Tailwind, no tracking of any kind, and an accent colour that picks a new hue once a day. The metadata in this table is fetched from GitHub when the site builds, not when you visit.",
+      de: "Diese Seite. Astro und Tailwind, kein Tracking jeglicher Art und eine Akzentfarbe, die sich einmal pro Tag neu auswürfelt. Die Daten in dieser Tabelle werden beim Bauen der Seite von GitHub geholt, nicht bei deinem Besuch.",
     },
     links: [{ label: SOURCE, href: "https://github.com/timhlzwrt/timhlzwrt.github.io" }],
   },

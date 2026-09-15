@@ -9,7 +9,7 @@
 @custom-variant dark (&:where(.dark.dark *));
 
 /*
-  Paper, ink, and one accent that rerolls on every page load.
+  Paper, ink, and one accent that changes once a day.
 
   The accent is stored as two custom properties, one per theme, which an
   inline script in <head> overwrites before first paint. `--accent`

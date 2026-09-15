@@ -14,8 +14,8 @@ export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 
 /**
- * The name is split so the initials can be tinted with the (randomised)
- * accent colour: T, J, H give you tjh.li, without a caption explaining it.
+ * The name is split so the initials can be tinted with the accent colour:
+ * T, J, H give you tjh.li, without a caption explaining it.
  */
 export const NAME_PARTS = [
   { initial: "T", rest: "im" },
@@ -31,7 +31,6 @@ export const profile = {
   url: "https://tjh.li",
   city: "Stuttgart",
   email: "hi@tjh.li",
-  github: "https://github.com/timhlzwrt",
 } as const;
 
 /**
