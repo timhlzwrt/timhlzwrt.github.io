@@ -4,7 +4,8 @@
  * build time (see `src/lib/github.ts`), so they never go stale here.
  *
  * `repo` must match the GitHub repository name exactly, or the row renders
- * without live metadata rather than breaking the build.
+ * without live metadata rather than breaking the build. Leave it out for a
+ * project whose repository is private: there is nothing public to show.
  */
 
 import type { Locale } from "~/i18n/content";
@@ -13,7 +14,7 @@ export type Status = "live" | "shipped" | "paused" | "unmaintained";
 
 export interface Project {
   name: string;
-  repo: string;
+  repo?: string;
   status: Status;
   /** One or two sentences per language. Plain and specific. */
   blurb: Record<Locale, string>;
@@ -33,12 +34,22 @@ const LIVE = { en: "Live", de: "Live" };
 
 export const projects: Project[] = [
   {
+    // The repository is private, so no stats and no source link. Keep this
+    // to what runs and how, never addresses, ports or what is exposed.
+    name: "Homelab",
+    status: "live",
+    blurb: {
+      en: "The servers at home: Home Assistant, Immich for photos and Pi-hole as the network's DNS run as guests on a Proxmox host. Every config lives in Git. A push gets checked in CI, and only a green state goes out: the machines fetch it themselves, nothing at home is reachable from GitHub. Gatus checks every service, a dead man's switch speaks up when the checks themselves go quiet, and every guest is backed up nightly.",
+      de: "Die Server zu Hause: Home Assistant, Immich für Fotos und Pi-hole als DNS fürs ganze Netz laufen als Gäste auf einem Proxmox-Host. Jede Konfiguration liegt in Git. Ein Push wird in der CI geprüft, und nur ein grüner Stand geht raus: Die Rechner holen ihn selbst ab, von GitHub aus ist zu Hause nichts erreichbar. Gatus prüft jeden Dienst, ein Totmannschalter meldet sich, wenn die Prüfungen selbst verstummen, und jeder Gast wird jede Nacht gesichert.",
+    },
+  },
+  {
     name: "Geopolitical Atlas",
     repo: "atlas",
     status: "live",
     blurb: {
-      en: "A 3D globe for exploring every country's statistics and post-1945 history, leadership records included. Every fact is sourced from the World Bank, Wikidata and Natural Earth; nothing is fabricated.",
-      de: "Ein 3D-Globus zum Erkunden der Statistiken und der Geschichte seit 1945 jedes Landes, inklusive Führungsdaten. Jede Angabe stammt aus Weltbank, Wikidata und Natural Earth, nichts ist erfunden.",
+      en: "A 3D globe on which you can explore the statistics and history of every country since 1945, leadership records included. Every fact is sourced from the World Bank, Wikidata and Natural Earth; nothing is fabricated.",
+      de: "Ein 3D-Globus, auf dem man Statistiken und Geschichte jedes Landes seit 1945 erkunden kann, inklusive Führungsdaten. Jede Angabe stammt aus Weltbank, Wikidata und Natural Earth, nichts ist erfunden.",
     },
     links: [
       { label: LIVE, href: "https://atlas.tjh.li" },
@@ -46,37 +57,28 @@ export const projects: Project[] = [
     ],
   },
   {
+    // The library and its HTTP layer (the dsbixAPI repo) are one story, so
+    // they share a row; the stats come from the library.
     name: "dsbix",
     repo: "dsbix",
     status: "unmaintained",
     blurb: {
-      en: "Reads timetable changes out of DSBmobile, the substitution-plan app most German schools run. A rework of nerrixde's DSBApi, published to PyPI. Every school configures DSBmobile differently, so the field mapping is deliberately left for you to correct.",
-      de: "Liest Vertretungsplan-Änderungen aus DSBmobile aus, der App, über die die meisten deutschen Schulen ihren Plan verteilen. Eine Überarbeitung von nerrixdes DSBApi, veröffentlicht auf PyPI. Jede Schule richtet DSBmobile anders ein, deshalb bleibt das Feld-Mapping bewusst dir zum Anpassen überlassen.",
+      en: "My school's substitution plan lived in DSBmobile, which has no public API. dsbix reads it anyway: a Python library built on nerrixde's DSBApi and published to PyPI, plus a small HTTP layer so other languages can get at the data too. Every school sets DSBmobile up differently, so the field mapping is deliberately left adjustable.",
+      de: "Der Vertretungsplan meiner Schule lag in DSBmobile, und DSBmobile hat keine öffentliche API. dsbix liest ihn trotzdem aus: eine Python-Bibliothek auf Basis der DSBApi von nerrixde, veröffentlicht auf PyPI, dazu eine kleine HTTP-Schicht, damit auch andere Sprachen an die Daten kommen. Weil jede Schule DSBmobile anders einrichtet, bleibt das Feld-Mapping bewusst anpassbar.",
     },
     links: [
       { label: { en: "PyPI", de: "PyPI" }, href: "https://pypi.org/project/dsbix/" },
       { label: SOURCE, href: "https://github.com/timhlzwrt/dsbix" },
+      { label: { en: "HTTP layer", de: "HTTP-Schicht" }, href: "https://github.com/timhlzwrt/dsbixAPI" },
     ],
-  },
-  {
-    name: "dsbixAPI",
-    repo: "dsbixAPI",
-    // The Vercel deployment is gone (root 404s, /api 500s), so this is no
-    // longer "live". Flip back and restore the Live link if you redeploy it.
-    status: "paused",
-    blurb: {
-      en: "An HTTP layer over dsbix, so anything that isn't Python can read the same data. The hosted instance is currently down.",
-      de: "Eine HTTP-Schicht über dsbix, damit auch alles, was kein Python ist, dieselben Daten lesen kann. Die gehostete Instanz läuft gerade nicht.",
-    },
-    links: [{ label: SOURCE, href: "https://github.com/timhlzwrt/dsbixAPI" }],
   },
   {
     name: "tjh.li",
     repo: "timhlzwrt.github.io",
     status: "live",
     blurb: {
-      en: "This site. Astro and Tailwind, no tracking of any kind, and an accent colour that picks a new hue once a day. The metadata in this table is fetched from GitHub when the site builds, not when you visit.",
-      de: "Diese Seite. Astro und Tailwind, kein Tracking jeglicher Art und eine Akzentfarbe, die sich einmal pro Tag neu auswürfelt. Die Daten in dieser Tabelle werden beim Bauen der Seite von GitHub geholt, nicht bei deinem Besuch.",
+      en: "This site: static HTML, rebuilt every night so the project data stays current without your visit asking GitHub. No tracking, no cookies, and the water and the sharks are about 5 KB of hand-written canvas code rather than a library.",
+      de: "Diese Seite: statisches HTML, das jede Nacht neu gebaut wird, damit die Projektdaten aktuell bleiben, ohne dass dein Besuch GitHub fragt. Kein Tracking, keine Cookies, und Wasser und Haie sind gut 5 KB selbst geschriebener Canvas-Code statt einer Bibliothek.",
     },
     links: [{ label: SOURCE, href: "https://github.com/timhlzwrt/timhlzwrt.github.io" }],
   },

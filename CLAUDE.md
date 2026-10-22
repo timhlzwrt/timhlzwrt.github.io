@@ -5,8 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 Tim's personal site (tjh.li, served at the apex; `me.tjh.li` 301s to it). Astro, static output, bilingual
-(English / German). Single-page layout per locale (`#about`, `#tools`, `#privacy`,
-`#work`, `#contact` sections), no client-side framework, minimal inline JS.
+(English / German). Single-page layout per locale (`#about`, `#work`, `#tools`,
+`#privacy`, `#contact` sections, in the order of `SECTIONS`), no client-side framework, minimal inline JS.
 
 ## Commands
 
@@ -17,6 +17,7 @@ npm run build    # → dist/
 npm run preview  # serve the built output
 npm run check    # astro check: types + template diagnostics
 npm run og       # redraw public/og.png (needs chromium; run by hand, output is committed)
+npm run brand    # redraw public/brand/* (same deal as og)
 ```
 
 There is no test suite and no lint script. `npm run check` is the correctness
@@ -99,6 +100,61 @@ The profile's game details have to be set to Public. A private profile is
 not an API error: Steam answers 200 with an empty `response` object, which
 is handled as "nothing to show".
 
+**The status row** (`src/components/StatusWidget.astro`, rendered in the
+`Base.astro` footer) is the one deliberate exception to build-time baking:
+it fetches `https://status.tjh.li/api/summary` client-side, because a stale
+"all clear" during an outage is worse than nothing. It recognises only
+`overall: "up"` and `"down"`; any other value, a non-200 or a network error
+hides the row. Keep it fail-closed like that rather than guessing a state.
+
+**The shark pond** (`src/components/Pond.astro`, named from when it held
+koi) is the ASCII backdrop the
+whole page sits on: a vanilla canvas script, fixed behind everything, no
+dependencies, no network. Content lives in frosted-glass panes (`Section.astro`,
+marked `data-pane`, styled by the `glass` utility in `global.css`), so the sharks
+swim underneath them as blurred colour; the gaps between panes are what show
+the water sharp. Text placed straight on the water (the hero,
+the 404) is marked `data-pond-clear` instead: the water and fish thin out
+toward those areas through a dithered soft edge (`FADE_BAND`) rather than a
+hard cut-out, and the sharks steer around them, so add the attribute to anything
+new that sits on the pond without a pane. The sharks' dorsal ridge uses `--accent`,
+so it follow the daily hue and the theme. It renders one still frame under
+`prefers-reduced-motion`. The water surface scrolls at `PARALLAX` times the
+page speed while the sharks stay in viewport space; the sun glints (light)
+ignore the scroll on purpose, since a reflection follows the viewer. The dithered light (moon glow in dark, depth shading in light)
+is an 8x8 Bayer pattern painted once per resize or theme change into an
+offscreen canvas, not per frame.
+
+The rest of the texture is CSS: a static `feTurbulence` grain on `body::after`
+and a stacked progressive blur under the bottom bar (`.progressive-blur`).
+Both the glass and the progressive blur go solid or away under
+`prefers-reduced-transparency`.
+
+**The hero** is the name alone, set huge and centred in the first screen,
+with one line of role and employer under it. Each line comes up out of a blur (`rise` in
+`global.css`), animating opacity and blur only so the pond's clear areas are
+right from the first frame.
+
+**The homelab figures** (`LabFact.astro`, copy in `content.ts` under `lab`)
+fill the open side of each pane row on the water. They summarise the private
+`infrastructure` repo, so keep them to what is run and how, never addresses,
+ports, hostnames or what is exposed: this repo and the site are public.
+
+**Navigation is a floating bar** pinned to the bottom (the `<header>` in
+`Base.astro`), one link per entry in `SECTIONS` (`content.ts`), so the order
+lives in that one array. Where the links do not fit (phones) they scroll
+sideways inside the bar and the current one is scrolled into view; every
+target in the bar is 44px tall.
+
+**Scrolling is smoothed by Lenis**, set up in the `Base.astro` script with
+`anchors` on so the section links glide too. It drives the real window scroll,
+so scroll events, the IntersectionObservers and the pond's parallax need
+nothing special, and it switches itself off under `prefers-reduced-motion`. The
+pond steps its fish at 30 Hz but redraws on every frame the scroll moves, so
+the water never lags the page. Panes rise in with a CSS scroll-driven
+animation (`surface` in `global.css`), and the theme toggle crossfades through
+a view transition.
+
 **The social card** (`public/og.png`) is committed, not built. `npm run og`
 redraws it with `scripts/generate-og.mjs`, which imports the real strings from
 `content.ts` and screenshots a headless Chromium page using the same fonts and
@@ -120,19 +176,28 @@ expired file as invalid.
 **Work section data** (`src/data/projects.ts`): hand-written name/blurb/links
 per project, with `repo` used to look up live stats from `fetchRepoStats()`.
 `repo` must match the GitHub repo name exactly or that row silently renders
-without metadata (not a build failure).
+without metadata (not a build failure). It is optional: the Homelab entry
+describes the private `infrastructure` repo and has no `repo`, no stats and
+no links. Stars only show from `MIN_STARS` (`ProjectRow.astro`) upward.
 
 **Styling**: Tailwind v4 via `@tailwindcss/vite` (no separate Tailwind config
 file, since v4 is CSS-driven). Design tokens in `src/styles/global.css` follow
 shadcn/ui naming (`--background`, `--foreground`, `--muted-foreground`,
 `--accent`, …) even though nothing in the project depends on shadcn. Fonts
-are self-hosted via `@fontsource/*` (Instrument Serif for display, IBM Plex
-Mono for everything else), Latin subsets only.
+are self-hosted via fontsource (Mona Sans, variable weight and width, for
+headings and body text; IBM Plex Mono only for the small `label` metadata and
+the pond), Latin subsets only. `@fontsource/instrument-serif` is no longer used by the site;
+it stays installed because the og and brand scripts still draw with it.
 
 **The accent colour** picks one of six preset hues by UTC calendar day
 (`Math.floor(Date.now() / 86400000) % palette.length`), each with a
 light/dark variant chosen to clear 4.5:1 contrast, so it's fixed for the
-whole day rather than re-rolling per page load. All six live in
+whole day rather than re-rolling per page load.
+`src/data/accent.ts` is the switch: `"daily"` keeps that rotation, a hue
+number pins one colour for everyone (a palette hue uses its tuned pair, any
+other gets the palette's lightness and a muted chroma), and anything else
+throws during the build so a typo never deploys. The internal dashboard links
+to that file's GitHub edit page, which is how Tim changes it. All six live in
 `src/lib/palette.ts` and reach the pre-paint script in `Base.astro` through
 `define:vars`, so the array is not written out by hand there any more.
 `scripts/generate-og.mjs` imports the same file for the card. status.tjh.li
@@ -175,7 +240,9 @@ because Pages imposes them:
   custom domain, so verify `tjh.li` still resolves after any such change.
 - Pages can't set response headers, so there is deliberately no custom
   caching policy or CSP, and nothing here needs one (static files, zero
-  third-party requests at runtime).
+  third-party requests at runtime; the only runtime fetch is the
+  first-party status row). `public/sitemap.txt` is hand-maintained, so
+  update it if a page is ever added.
 
 ## Conventions
 

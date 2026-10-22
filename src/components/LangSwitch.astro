@@ -23,9 +23,11 @@ const href = alternatePath(other, Astro.url.pathname);
   lang={other}
   data-lang-switch={other}
   aria-label={t.ui.switchLabel}
-  class="label transition-colors hover:!text-accent"
+  class="label flex h-full items-center rounded-xl px-3 transition-colors hover:!text-accent"
 >
-  {t.ui.switchTo}
+  {/* The language code where space is short, the name where it is not. */}
+  <span class="sm:hidden">{other.toUpperCase()}</span>
+  <span class="hidden sm:inline">{t.ui.switchTo}</span>
 </a>
 
 <script>

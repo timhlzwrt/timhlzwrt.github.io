@@ -1,9 +1,10 @@
 ---
 import "~/styles/global.css";
-import { content, profile, type Locale } from "~/i18n/content";
+import { content, profile, SECTIONS, type Locale } from "~/i18n/content";
 import { alternatePath, otherLocale } from "~/i18n/utils";
 import { fetchLastGame } from "~/lib/steam";
-import { PALETTE } from "~/lib/palette";
+import { ACCENT } from "~/data/accent";
+import { accentChoices } from "~/lib/palette";
 import ThemeToggle from "~/components/ThemeToggle.astro";
 import LangSwitch from "~/components/LangSwitch.astro";
 import StatusWidget from "~/components/StatusWidget.astro";
@@ -14,7 +15,7 @@ interface Props {
   description?: string;
   /** Set on pages that shouldn't be indexed or given a canonical (e.g. 404). */
   noindex?: boolean;
-  /** In-page anchors for the header nav. Omitted on the 404 page. */
+  /** Section links in the bottom bar. Omitted on the 404 page. */
   showNav?: boolean;
 }
 
@@ -61,13 +62,7 @@ const personLd = {
 // unhappy, in which case the line is simply omitted.
 const lastGame = await fetchLastGame();
 
-const nav = [
-  { label: t.nav.about, href: "#about" },
-  { label: t.nav.tools, href: "#tools" },
-  { label: t.nav.privacy, href: "#privacy" },
-  { label: t.nav.work, href: "#work" },
-  { label: t.nav.contact, href: "#contact" },
-];
+const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
 ---
 
 <!doctype html>
@@ -113,15 +108,15 @@ const nav = [
       )
     }
 
-    <meta name="theme-color" content="#fbf9f5" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#110f0d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f2f4f9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0d13" media="(prefers-color-scheme: dark)" />
 
     {/*
       One blocking script, run before first paint, doing three things that
       would otherwise cause a visible flash: pick the theme, roll the accent
       colour, and send German speakers to the German page.
     */}
-    <script is:inline define:vars={{ palette: PALETTE }}>
+    <script is:inline define:vars={{ palette: accentChoices(ACCENT) }}>
       (function () {
         var root = document.documentElement;
 
@@ -137,12 +132,10 @@ const nav = [
         }
 
         // -- accent -----------------------------------------------------
-        // `palette` is injected by define:vars from src/lib/palette.ts, so
-        // the hues live in one place rather than being copied in here by
-        // hand. Picked from the day, not the load: status.tjh.li carries
-        // the same array and the same formula, so the two sites land on
-        // the same hue for as long as the date does, no cookie and no
-        // request between them.
+        // `palette` is injected by define:vars from the setting in
+        // src/data/accent.ts: all six pairs for "daily", otherwise just the
+        // pinned one, which the day index then always lands on. Picked from
+        // the day, not the load, so the colour holds for the whole day.
         var dayIndex = Math.floor(Date.now() / 86400000) % palette.length;
         var pick = palette[dayIndex];
         root.style.setProperty("--accent-light", pick[0]);
@@ -182,7 +175,7 @@ const nav = [
     </script>
   </head>
 
-  <body class="min-h-dvh antialiased">
+  <body class="min-h-dvh pb-16 antialiased">
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-foreground focus:px-3 focus:py-2 focus:text-xs focus:text-background"
@@ -190,39 +183,14 @@ const nav = [
       {t.ui.skipToContent}
     </a>
 
-    <div class="mx-auto w-full max-w-3xl px-6 sm:px-8">
-      <header
-        class="sticky top-0 z-40 flex items-baseline justify-between gap-4 border-b border-rule bg-background/90 py-4 backdrop-blur-sm"
-      >
-        <a
-          href={locale === "de" ? "/de/" : "/"}
-          class="font-mono text-sm font-medium tracking-tight transition-colors hover:text-accent"
-        >
-          {profile.domain}
-        </a>
-
-        <div class="flex items-baseline gap-4 sm:gap-5">
-          {
-            showNav && (
-              <nav class="hidden items-baseline gap-5 sm:flex" aria-label="Sections">
-                {nav.map((item) => (
-                  <a href={item.href} class="label transition-colors hover:!text-accent">
-                    {item.label}
-                  </a>
-                ))}
-              </nav>
-            )
-          }
-          <LangSwitch locale={locale} />
-          <ThemeToggle label={t.ui.themeLabel} />
-        </div>
-      </header>
-
+    <div class="mx-auto w-full max-w-6xl px-5 sm:px-8">
       <main id="main">
         <slot />
       </main>
 
-      <footer class="mt-24 border-t border-rule py-8 text-xs text-muted-foreground">
+      <footer
+        class="glass mb-10 mt-20 rounded-2xl border border-rule/70 px-6 py-6 text-sm text-muted-foreground sm:px-10"
+      >
         {/*
           Fetched when the page was built, not when it was opened, exactly
           like the repo metadata in the work section. "Last played" rather
@@ -258,10 +226,6 @@ const nav = [
               >{profile.email}</a
             >
           </p>
-          {/*
-            The section nav is desktop-only, so on a phone this link is the
-            only way back to the header without a long scroll.
-          */}
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
             <p>
               {t.footer.built}{" "}
@@ -270,6 +234,10 @@ const nav = [
                 class="link-underline">{t.footer.source}</a
               >.
             </p>
+            {/*
+              The section tabs are desktop-only, so on a phone this link is the
+              only way back up without a long scroll.
+            */}
             <p>
               <a href="#main" class="link-underline">
                 <span aria-hidden="true">↑ </span>{t.ui.backToTop}
@@ -279,5 +247,107 @@ const nav = [
         </div>
       </footer>
     </div>
+
+    {/*
+      Progressive blur under the bar: stacked layers, each blurring a little
+      more and masked to a band a little lower, so whatever scrolls toward
+      the bottom edge goes soft gradually rather than at one hard line.
+    */}
+    <div aria-hidden="true" class="progressive-blur pointer-events-none fixed inset-x-0 bottom-0 z-30 h-20 sm:h-28">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+
+    {/*
+      One floating bar for everything: home, the sections, the language and
+      the theme. At the bottom so it stays under the thumb on a phone. Every
+      target is the full 44px height of the bar. Where the section links do
+      not fit (a phone, a narrow window) they scroll sideways inside the
+      bar, faded at the edges, and the current one is kept in view.
+    */}
+    <header
+      class="fixed inset-x-3 bottom-3 z-40 mx-auto flex h-[3.375rem] max-w-fit items-center gap-1 glass rounded-2xl border border-rule/70 p-1 text-sm shadow-[0_8px_30px_-12px_rgb(0_0_0/0.35)] [view-transition-name:status-bar]"
+    >
+      <a
+        href={locale === "de" ? "/de/" : "/"}
+        class="flex h-full shrink-0 items-center rounded-xl px-3 font-display font-bold tracking-[-0.01em] [font-stretch:125%] transition-colors hover:text-accent"
+      >
+        {profile.domain}
+      </a>
+
+      {
+        showNav && (
+          <nav
+            id="section-nav"
+            data-lenis-prevent
+            class="flex h-full min-w-0 items-center overflow-x-auto [mask-image:linear-gradient(to_right,transparent,#000_1rem,#000_calc(100%-1rem),transparent)] [scrollbar-width:none] lg:[mask-image:none] [&::-webkit-scrollbar]:hidden"
+            aria-label={t.ui.sectionsLabel}
+          >
+            {nav.map((item) => (
+              <a
+                href={`#${item.id}`}
+                data-tab={item.id}
+                class="flex h-full shrink-0 items-center rounded-xl px-3 text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:bg-foreground/10 aria-[current=true]:text-foreground"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+        )
+      }
+
+      <div class="flex h-full shrink-0 items-center border-l border-rule pl-1">
+        <LangSwitch locale={locale} />
+        <ThemeToggle label={t.ui.themeLabel} />
+      </div>
+    </header>
+
+    <script>
+      import Lenis from "lenis";
+
+      // Eased wheel and anchor scrolling. Lenis drives the real window
+      // scroll, so scroll events, the observers and the pond's parallax all
+      // keep working, and it turns itself off under prefers-reduced-motion.
+      // A slightly lower lerp than the default gives the wheel a softer
+      // glide; touch keeps the platform's own momentum, which feels right.
+      new Lenis({ autoRaf: true, lerp: 0.085, anchors: { offset: -24 } });
+
+      const tabs = new Map(
+        Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-tab]"), (tab) => [
+          tab.dataset.tab,
+          tab,
+        ]),
+      );
+
+      // A section counts as current while it crosses a line 40% down the
+      // screen, so exactly one tab is lit at a time. Above the middle, so a
+      // short last section can still reach it on a phone.
+      const sectionNav = document.getElementById("section-nav");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const tab = tabs.get(entry.target.id);
+            tab?.setAttribute("aria-current", String(entry.isIntersecting));
+            // Where the links scroll sideways, bring the current one to the
+            // middle so it is never hidden past the edge.
+            if (tab && entry.isIntersecting && sectionNav) {
+              sectionNav.scrollTo({
+                left: tab.offsetLeft - (sectionNav.clientWidth - tab.offsetWidth) / 2,
+                behavior: "smooth",
+              });
+            }
+          }
+        },
+        { rootMargin: "-40% 0px -60% 0px" },
+      );
+      tabs.forEach((_, id) => {
+        const section = id && document.getElementById(id);
+        if (section) observer.observe(section);
+      });
+
+
+    </script>
   </body>
 </html>
