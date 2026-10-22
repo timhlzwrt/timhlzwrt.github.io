@@ -1,6 +1,8 @@
 ---
 import Section from "~/components/Section.astro";
 import ProjectRow from "~/components/ProjectRow.astro";
+import LabFact from "~/components/LabFact.astro";
+import Pond from "~/components/Pond.astro";
 import { projects } from "~/data/projects";
 import { content, NAME_PARTS, type Locale } from "~/i18n/content";
 import { fetchRepoStats } from "~/lib/github";
@@ -12,111 +14,228 @@ interface Props {
 const { locale } = Astro.props;
 const t = content[locale];
 const stats = await fetchRepoStats();
+const [guests, deploys, checks, backups] = t.lab.facts;
 ---
 
+<Pond />
+
 {/* ---------------------------------------------------------------- hero */}
-<section class="pb-4 pt-20 sm:pt-28">
+{/*
+  The name, centred in the first screen with water above and below it, so
+  the page opens on it rather than on empty pond. Stacked, the three
+  initials run down the left edge and spell the domain. The lines come up
+  out of a blur one after another (see `rise` in global.css).
+*/}
+<section class="relative flex min-h-[calc(100svh-5rem)] flex-col justify-center py-16">
   <h1
-    class="font-display text-[clamp(2.5rem,9.5vw,5rem)] leading-[0.95] tracking-tight"
+    class="font-display text-[clamp(3.25rem,16.5vw,10.5rem)] font-extrabold leading-[0.86] tracking-[-0.045em] [font-stretch:125%]"
   >
     {
       NAME_PARTS.map((part, i) => (
-        <span class="whitespace-nowrap">
+        <span data-pond-clear class="rise block w-fit" style={`animation-delay: ${120 + i * 140}ms`}>
           <span class="initial">{part.initial}</span>{part.rest}{i < NAME_PARTS.length - 1 ? " " : ""}
         </span>
       ))
     }
   </h1>
 
-  <p class="mt-7 max-w-[52ch] text-[0.9375rem] leading-relaxed">
-    <span class="font-medium">{t.hero.role}</span><br />
-    <span class="text-muted-foreground">{t.hero.employer}</span>
+  <p
+    data-pond-clear
+    class="rise mt-8 w-fit text-xl leading-snug [animation-delay:620ms] sm:mt-10 sm:text-2xl"
+  >
+    <span class="font-semibold">{t.hero.role}</span>{" "}
+    <span class="block text-foreground/70 sm:inline">{t.hero.employer}</span>
   </p>
 
-  <p class="mt-6 max-w-[54ch] text-[0.9375rem] leading-relaxed text-muted-foreground">
-    {t.hero.lede}
+  {/*
+    Shown by the pond script, and only when the sharks are actually moving.
+    Up in the open water it points at, away from the role line.
+  */}
+  <p
+    id="pond-hint"
+    data-pond-clear
+    aria-hidden="true"
+    class="label invisible absolute right-0 top-6 w-fit text-right sm:top-10"
+  >
+    <span class="[@media(pointer:coarse)]:hidden">{t.hero.pondHint}</span>
+    <span class="hidden [@media(pointer:coarse)]:inline">{t.hero.pondHintTouch}</span>
   </p>
+
+  {/*
+    The hero fills the screen, so say there is more below it. Gone for good
+    once the visitor scrolls or uses it: by then it has done its job. The
+    fade sits on the link and the entrance on the wrapper, because a
+    finished animation would otherwise keep holding the opacity.
+  */}
+  <div class="rise absolute bottom-2 left-1/2 -ml-5 [animation-delay:900ms]">
+    <a
+      id="scroll-cue"
+      href="#about"
+      aria-label={t.ui.scrollDown}
+      data-pond-clear
+      class="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-[color,opacity] duration-500 hover:text-accent data-[gone]:pointer-events-none data-[gone]:opacity-0"
+    >
+      <svg
+        class="nudge"
+        width="18"
+        height="22"
+        viewBox="0 0 18 22"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M9 2v17M2 12l7 7 7-7"></path>
+      </svg>
+    </a>
+  </div>
 </section>
 
-{/* --------------------------------------------------------------- about */}
-<Section id="about" heading={t.about.heading}>
-  <div class="mt-6 max-w-[62ch] space-y-5 text-[0.875rem] leading-[1.75]">
-    {t.about.body.map((paragraph) => <p>{paragraph}</p>)}
-  </div>
-</Section>
+<script>
+  const cue = document.getElementById("scroll-cue");
+  if (cue) {
+    const hide = () => {
+      // Out of the tab order too, not just invisible.
+      cue.dataset.gone = "";
+      cue.tabIndex = -1;
+      // And let the water back in where it was.
+      cue.removeAttribute("data-pond-clear");
+      window.removeEventListener("scroll", onScroll);
+    };
+    const onScroll = () => {
+      if (window.scrollY > 40) hide();
+    };
+    // A reload halfway down the page should not bring it back.
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    cue.addEventListener("click", hide);
+  }
+</script>
 
-{/* --------------------------------------------------------------- tools */}
-<Section id="tools" heading={t.tools.heading}>
-  <dl class="mt-1">
-    {
-      t.tools.groups.map((group) => (
-        <div class="grid grid-cols-[6rem_1fr] gap-x-4 border-b border-rule py-4 sm:grid-cols-[9rem_1fr]">
-          <dt class="label pt-[0.2rem]">{group.label}</dt>
-          <dd class="flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem]">
-            {group.items.map((item) => (
-              <span>{item}</span>
-            ))}
-          </dd>
-        </div>
-      ))
-    }
-  </dl>
-  <p class="mt-4 text-xs text-muted-foreground">{t.tools.note}</p>
-</Section>
+{/*
+  Stepping stones: each pane takes a different slice of the grid, so the
+  page zig-zags down the pond and leaves water showing between them. The
+  homelab figures fill the open side of each row; `grid-flow-row-dense`
+  lets one sit to the left of the pane it follows in the markup.
+*/}
+<div class="grid grid-cols-1 gap-y-20 pb-8 sm:gap-y-28 md:grid-flow-row-dense md:grid-cols-12 md:gap-x-8">
+  {/* ------------------------------------------------------------- about */}
+  <Section id="about" heading={t.about.heading} class="md:col-span-7">
+    <div class="max-w-[62ch] space-y-5 text-[1.0625rem] leading-[1.6] sm:leading-[1.7]">
+      {t.about.body.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+  </Section>
+  <LabFact {...guests} class="md:col-span-4 md:col-start-9" />
 
-{/* ------------------------------------------------------------- privacy */}
-<Section id="privacy" heading={t.privacy.heading}>
-  <div class="mt-6 max-w-[62ch] space-y-5 text-[0.875rem] leading-[1.75]">
-    {t.privacy.body.map((paragraph) => <p>{paragraph}</p>)}
-  </div>
+  {/* -------------------------------------------------------------- work */}
+  <Section
+    id="work"
+    heading={t.work.heading}
+    class="md:col-span-10 md:col-start-3"
+  >
+    <p class="text-sm text-muted-foreground">{t.work.note}</p>
+    <div class="mt-4">
+      {
+        projects.map((project) => (
+          <ProjectRow
+            project={project}
+            stats={project.repo ? stats.get(project.repo) : undefined}
+            locale={locale}
+          />
+        ))
+      }
+      <div class="border-t border-rule"></div>
+    </div>
+  </Section>
 
-  {/* The claims above, stated as a table you can check against the network tab. */}
-  <dl class="mt-8">
-    {
-      t.privacy.facts.map(([term, value]) => (
-        <div class="grid grid-cols-[9rem_1fr] gap-x-4 border-b border-rule py-3 text-[0.8125rem] sm:grid-cols-[12rem_1fr]">
-          <dt class="label pt-[0.2rem]">{term}</dt>
-          <dd class="text-accent">{value}</dd>
-        </div>
-      ))
-    }
-  </dl>
-</Section>
+  {/* ------------------------------------------------------------- tools */}
+  <Section
+    id="tools"
+    heading={t.tools.heading}
+    class="md:col-span-6 md:col-start-6"
+  >
+    <dl class="divide-y divide-rule border-y border-rule">
+      {
+        t.tools.groups.map((group) => (
+          <div class="grid gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-6">
+            <dt class="label pt-1.5">{group.label}</dt>
+            {/* Each item stays on one line, so "Self-hosting" never splits at its hyphen. */}
+            <dd class="text-[1.0625rem] leading-snug">
+              {group.items.map((item, i) => (
+                <>
+                  <span class="whitespace-nowrap">{i < group.items.length - 1 ? `${item},` : item}</span>{" "}
+                </>
+              ))}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class="mt-5 text-sm text-muted-foreground">{t.tools.note}</p>
+  </Section>
+  <LabFact {...deploys} class="md:col-span-4 md:col-start-1" />
 
-{/* ---------------------------------------------------------------- work */}
-<Section id="work" heading={t.work.heading} aside={t.ui.entries(projects.length)}>
-  <p class="mt-4 text-xs text-muted-foreground">{t.work.note}</p>
-  <div class="mt-4">
-    {
-      projects.map((project, index) => (
-        <ProjectRow
-          project={project}
-          stats={stats.get(project.repo)}
-          index={index}
-          locale={locale}
-        />
-      ))
-    }
-    <div class="border-t border-rule"></div>
-  </div>
-</Section>
+  {/* ----------------------------------------------------------- privacy */}
+  <Section
+    id="privacy"
+    heading={t.privacy.heading}
+    class="md:col-span-7 md:col-start-2"
+  >
+    <div class="max-w-[62ch] space-y-5 text-[1.0625rem] leading-[1.6] sm:leading-[1.7]">
+      {t.privacy.body.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
 
-{/* ------------------------------------------------------------- contact */}
-<Section id="contact" heading={t.contact.heading}>
-  <p class="mt-6 max-w-[54ch] text-[0.875rem] leading-relaxed">{t.contact.body}</p>
-  <ul class="mt-5 flex flex-wrap gap-x-8 gap-y-3">
-    {
-      t.contact.links.map((link) => (
-        <li>
-          {/* rel="me" is load-bearing: it backs identity verification on the
-              linked profiles. noopener is not, without target="_blank". */}
-          <a href={link.href} rel="me" class="text-sm link-underline">
-            {link.label}
-            {/* The arrow means "this leaves the site". A mailto: doesn't. */}
-            {!link.href.startsWith("mailto:") && <span aria-hidden="true"> ↗</span>}
-          </a>
-        </li>
-      ))
-    }
-  </ul>
-</Section>
+    {/* The claims above, as a list you can check against the network tab. */}
+    <dl class="mt-8 divide-y divide-rule border-y border-rule">
+      {
+        t.privacy.facts.map(([term, value]) => (
+          <div class="flex items-baseline justify-between gap-4 py-3">
+            <dt>{term}</dt>
+            <dd class="font-medium">{value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </Section>
+  <LabFact {...checks} class="md:col-span-3 md:col-start-10" />
+
+  {/* ----------------------------------------------------------- contact */}
+  <Section id="contact" heading={t.contact.heading} class="md:col-span-5">
+    <p class="max-w-[54ch] text-[1.0625rem] leading-relaxed">{t.contact.body}</p>
+    <ul class="mt-6 space-y-2">
+      {
+        t.contact.links.map((link) => (
+          <li>
+            {/* rel="me" is load-bearing: it backs identity verification on the
+                linked profiles. noopener is not, without target="_blank". */}
+            <a
+              href={link.href}
+              rel="me"
+              class="group inline-flex items-baseline gap-2 font-display text-2xl font-semibold tracking-[-0.01em] [font-stretch:115%] transition-colors hover:text-accent"
+            >
+              {link.label}
+              {/* Shown, not just linked: plenty of people copy it rather than click. */}
+              {link.href.startsWith("mailto:") && (
+                <span class="font-sans text-base font-normal tracking-normal text-muted-foreground [font-stretch:100%] group-hover:text-accent">
+                  {link.href.slice("mailto:".length)}
+                </span>
+              )}
+              {/* The arrow means "this leaves the site". A mailto: doesn't. */}
+              {!link.href.startsWith("mailto:") && (
+                <span
+                  aria-hidden="true"
+                  class="text-base text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent"
+                >
+                  ↗
+                </span>
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+  <LabFact {...backups} class="md:col-span-4 md:col-start-8" />
+</div>

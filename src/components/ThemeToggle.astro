@@ -13,7 +13,7 @@ const { label } = Astro.props;
 <button
   id="theme-toggle"
   type="button"
-  class="label -my-1 cursor-pointer p-1 transition-colors hover:!text-accent"
+  class="label flex h-full min-w-11 cursor-pointer items-center justify-center rounded-xl transition-colors hover:!text-accent"
   aria-label={label}
 >
   <svg
@@ -40,7 +40,7 @@ const { label } = Astro.props;
 
   sync(document.documentElement.classList.contains("dark"));
 
-  toggle?.addEventListener("click", () => {
+  const flip = () => {
     const dark = document.documentElement.classList.toggle("dark");
     sync(dark);
     try {
@@ -48,6 +48,14 @@ const { label } = Astro.props;
     } catch {
       /* storage blocked; the choice just won't persist */
     }
+  };
+
+  // A crossfade instead of a hard cut, where the browser can do one and
+  // the visitor has not asked for less motion.
+  toggle?.addEventListener("click", () => {
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (document.startViewTransition && !calm) document.startViewTransition(flip);
+    else flip();
   });
 
   // Follow the OS until the visitor states a preference of their own.

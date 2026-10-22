@@ -1,5 +1,6 @@
 ---
 import Base from "~/layouts/Base.astro";
+import Pond from "~/components/Pond.astro";
 import { content } from "~/i18n/content";
 
 /**
@@ -13,18 +14,20 @@ const de = content.de;
 ---
 
 <Base locale="en" title="404" noindex showNav={false} description="Page not found.">
-  <section class="pt-20 sm:pt-28">
+  <Pond />
+
+  <section data-pond-clear class="w-fit pt-20 sm:pt-28">
     <p class="label">{en.notFound.label} · {de.notFound.label}</p>
     <h1
-      class="mt-4 font-display text-[clamp(4rem,16vw,8rem)] leading-[0.8] tracking-tight tabular-nums"
+      class="mt-4 font-display text-[clamp(4rem,16vw,8rem)] font-extrabold leading-[0.8] tracking-[-0.04em] tabular-nums [font-stretch:125%]"
     >
       4<span class="initial">0</span>4
     </h1>
   </section>
 
-  <div class="mt-14 space-y-6 border-t border-foreground pt-6">
+  <div data-pane class="mt-14 max-w-xl space-y-6 glass rounded-2xl border border-rule/70 px-6 py-8 sm:px-10">
     <div class="max-w-[52ch]">
-      <p class="text-[0.875rem] leading-relaxed">{en.notFound.body}</p>
+      <p class="leading-relaxed">{en.notFound.body}</p>
       <p class="mt-2">
         <a href="/" class="text-sm link-underline">
           <span aria-hidden="true">← </span>{en.notFound.back}
@@ -33,7 +36,7 @@ const de = content.de;
     </div>
 
     <div class="max-w-[52ch] border-t border-rule pt-6" lang="de">
-      <p class="text-[0.875rem] leading-relaxed">{de.notFound.body}</p>
+      <p class="leading-relaxed">{de.notFound.body}</p>
       <p class="mt-2">
         <a href="/de/" class="text-sm link-underline">
           <span aria-hidden="true">← </span>{de.notFound.back}

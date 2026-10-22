@@ -1,0 +1,900 @@
+---
+/**
+ * The ASCII water the whole page sits on, with sharks in it. Purely decorative: one canvas,
+ * fixed behind everything, no network, no dependencies. The content panes are
+ * frosted, so the sharks simply pass underneath them. Text placed straight on the
+ * water is marked `data-pond-clear` instead: those areas are kept free of
+ * water and fish, and the sharks steer around them.
+ */
+---
+
+<canvas
+  id="pond"
+  aria-hidden="true"
+  class="pointer-events-none fixed inset-0 -z-10 h-full w-full"
+></canvas>
+
+<script>
+  type Vec = { x: number; y: number };
+  type Rect = { x0: number; y0: number; x1: number; y1: number };
+
+  interface Shark {
+    spine: Vec[];
+    angle: number;
+    /** Random walk on the turn rate, which is what gives the long lazy arcs. */
+    turn: number;
+    speed: number;
+    /** Extra speed after a scare, decays back to zero. */
+    boost: number;
+    length: number;
+    phase: number;
+    nextSurface: number;
+  }
+
+  interface Ripple {
+    x: number;
+    y: number;
+    born: number;
+    strength: number;
+  }
+
+  const SEGMENTS = 16;
+  /** Things that are not open water: the panes, the bars and anything clickable. */
+  const CONTROLS = "[data-pane], header, footer, a, button, input, label";
+  const STEP = 1 / 30;
+  const RIPPLE_LIFE = 2.6;
+  const PELLET_LIFE = 12;
+  const BODY_RAMP = ".:-=+*#%@";
+  /**
+   * Tightest turn a calm shark makes, as a radius in body lengths. Sharks
+   * cruise in long, flat arcs; anything much under one body length reads
+   * as the fish chasing its own tail.
+   */
+  const TURN_RADIUS = 1;
+
+  // Draw layers. Each is one colour, so a frame costs one fillText per row
+  // per layer instead of one per character.
+  const WATER = 1;
+  const RIPPLE = 2;
+  const BODY = 3;
+  const PATCH = 4;
+  const FIN = 5;
+  const GLINT = 6;
+  const LAYER_STYLE: [keyof Colors, number][] = [
+    ["water", 0],
+    ["water", 0.32],
+    ["water", 0.8],
+    ["ink", 0.82],
+    ["accent", 1],
+    ["ink", 0.6],
+    ["ink", 0.5],
+  ];
+  /** Size of one dither dot, in CSS pixels. Big enough to read as a dot. */
+  const DOT = 2;
+  // 8x8 ordered-dither thresholds: the regular crosshatch is the look, and
+  // unlike error diffusion it can be computed per pixel.
+  const BAYER = [
+    0, 32, 8, 40, 2, 34, 10, 42, 48, 16, 56, 24, 50, 18, 58, 26, 12, 44, 4, 36, 14, 46, 6, 38, 60,
+    28, 52, 20, 62, 30, 54, 22, 3, 35, 11, 43, 1, 33, 9, 41, 51, 19, 59, 27, 49, 17, 57, 25, 15, 47,
+    7, 39, 13, 45, 5, 37, 63, 31, 55, 23, 61, 29, 53, 21,
+  ];
+  /** Width of the soft edge around text kept clear of the water, in px. */
+  const FADE_BAND = 48;
+  /** How much of the water is kept away right behind the text. */
+  const INSIDE_FADE = 0.94;
+  /** The water scrolls at this fraction of the page, so it reads as deeper. */
+  const PARALLAX = 0.4;
+
+  type Colors = { water: string; ink: string; accent: string };
+
+  const canvas = document.getElementById("pond");
+  const ctx = canvas instanceof HTMLCanvasElement ? canvas.getContext("2d") : null;
+  if (canvas instanceof HTMLCanvasElement && ctx) {
+    // Measuring the grid against the fallback font would misalign every row.
+    document.fonts.load('400 12px "IBM Plex Mono"').then(
+      () => startPond(canvas, ctx),
+      () => startPond(canvas, ctx),
+    );
+  }
+
+  function startPond(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+    const root = document.documentElement;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const hint = document.getElementById("pond-hint");
+
+    let width = 0;
+    let height = 0;
+    let cellW = 0;
+    let cellH = 0;
+    let cols = 0;
+    let rows = 0;
+    let chars: string[] = [];
+    let layers = new Uint8Array(0);
+    /** How strongly each cell is kept clear for text, 0 (open water) to 1. */
+    let fade = new Float32Array(0);
+    let clear: Rect[] = [];
+    let colors: Colors = { water: "", ink: "", accent: "" };
+    let dark = false;
+    let drift = 0;
+    let sharks: Shark[] = [];
+    const light = document.createElement("canvas");
+    const ripples: Ripple[] = [];
+    const pellets: (Vec & { born: number })[] = [];
+    /** `open` is false over panes and controls, where the sharks should not gather. */
+    let pointer: (Vec & { seen: number; open: boolean }) | null = null;
+    let lastRipple: Vec & { at: number } = { x: 0, y: 0, at: -1 };
+
+    let time = 0;
+    let running = false;
+    /** Set by the scroll listener, handled once in the next frame. */
+    let scrolled = false;
+    let drawnDrift = 0;
+    let last = 0;
+    let acc = 0;
+
+    // ------------------------------------------------------------- setup
+
+    function readColors() {
+      const style = getComputedStyle(root);
+      colors = {
+        water: style.getPropertyValue("--muted-foreground").trim(),
+        ink: style.getPropertyValue("--foreground").trim(),
+        accent: style.getPropertyValue("--accent").trim(),
+      };
+      dark = root.classList.contains("dark");
+      paintLight();
+    }
+
+    /**
+     * The light the water sits in, dithered: moonlight falling in from the
+     * top right in the dark theme, the deep end darkening toward the bottom
+     * in the light one. It only changes with the size or the theme, so it is
+     * drawn once into its own canvas and stamped onto every frame.
+     */
+    function paintLight() {
+      const w = Math.ceil(width / DOT);
+      const h = Math.ceil(height / DOT);
+      const lctx = light.getContext("2d");
+      if (!w || !h || !lctx) return;
+      light.width = w;
+      light.height = h;
+
+      // ImageData wants RGB, the tokens are oklch: let the canvas convert.
+      lctx.fillStyle = dark ? colors.ink : colors.water;
+      lctx.fillRect(0, 0, 1, 1);
+      const [red, green, blue] = lctx.getImageData(0, 0, 1, 1).data;
+
+      const img = lctx.createImageData(w, h);
+      const sx = w * 0.78;
+      const sy = -h * 0.2;
+      const reach = Math.max(w, h) * 0.8;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const level = dark
+            ? Math.max(0, 1 - Math.hypot(x - sx, y - sy) / reach) ** 2 * 0.7
+            : (y / h) ** 2.2 * 0.55;
+          if (level <= (BAYER[(y & 7) * 8 + (x & 7)] + 0.5) / 64) continue;
+          const i = (y * w + x) * 4;
+          img.data[i] = red;
+          img.data[i + 1] = green;
+          img.data[i + 2] = blue;
+          img.data[i + 3] = 255;
+        }
+      }
+      lctx.putImageData(img, 0, 0);
+    }
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      // Only a width change restarts the pond. Mobile browsers change the
+      // height whenever the address bar slides, and that should not reset it.
+      const restart = rect.width !== width;
+      width = rect.width;
+      height = rect.height;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+
+      // Resizing the canvas resets the context, so the font goes on after.
+      const fontSize = width < 640 ? 11 : 12;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.font = `400 ${fontSize}px "IBM Plex Mono", ui-monospace, monospace`;
+      ctx.textBaseline = "top";
+      cellW = ctx.measureText("M").width;
+      cellH = Math.round(fontSize * 1.15);
+      cols = Math.ceil(width / cellW);
+      rows = Math.ceil(height / cellH);
+      chars = new Array(cols * rows).fill(" ");
+      layers = new Uint8Array(cols * rows);
+
+      measureClear(rect);
+      paintLight();
+      if (restart) spawn();
+    }
+
+    function measureClear(origin: DOMRect) {
+      const pad = 2;
+      clear = Array.from(document.querySelectorAll<HTMLElement>("[data-pond-clear]"), (el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          x0: r.left - origin.left - pad,
+          y0: r.top - origin.top - pad,
+          x1: r.right - origin.left + pad,
+          y1: r.bottom - origin.top + pad,
+        };
+      });
+
+      // Not a hard cut-out, which reads as a box behind every line: the
+      // water thins out toward the text over a band, and stays a little
+      // present even behind it. put() turns the level into a dithered
+      // density, the same ordered pattern as the light.
+      if (fade.length !== cols * rows) fade = new Float32Array(cols * rows);
+      else fade.fill(0);
+      for (const r of clear) {
+        const c0 = Math.max(0, Math.floor((r.x0 - FADE_BAND) / cellW));
+        const c1 = Math.min(cols - 1, Math.floor((r.x1 + FADE_BAND) / cellW));
+        const r0 = Math.max(0, Math.floor((r.y0 - FADE_BAND) / cellH));
+        const r1 = Math.min(rows - 1, Math.floor((r.y1 + FADE_BAND) / cellH));
+        for (let row = r0; row <= r1; row++) {
+          const y = (row + 0.5) * cellH;
+          const dy = Math.max(r.y0 - y, 0, y - r.y1);
+          for (let col = c0; col <= c1; col++) {
+            const x = (col + 0.5) * cellW;
+            const d = Math.hypot(Math.max(r.x0 - x, 0, x - r.x1), dy);
+            const level = INSIDE_FADE * (1 - d / FADE_BAND);
+            const i = row * cols + col;
+            if (level > fade[i]) fade[i] = level;
+          }
+        }
+      }
+    }
+
+    function spawn() {
+      // Few and big: sharks need room to cruise.
+      const count = Math.max(2, Math.min(5, Math.round((width * height) / 260000)));
+      const base = Math.max(150, Math.min(300, Math.min(width, height) * 0.36));
+      sharks = Array.from({ length: count }, () => makeShark(base * (0.75 + Math.random() * 0.4)));
+    }
+
+    function makeShark(length: number): Shark {
+      const x = Math.random() * width;
+      const y = Math.random() * height;
+      const angle = Math.random() * Math.PI * 2;
+      const seg = length / (SEGMENTS - 1);
+      return {
+        spine: Array.from({ length: SEGMENTS }, (_, i) => ({
+          x: x - Math.cos(angle) * seg * i,
+          y: y - Math.sin(angle) * seg * i,
+        })),
+        angle,
+        turn: 0,
+        speed: 0.7 + Math.random() * 0.35,
+        boost: 0,
+        length,
+        phase: Math.random() * 10,
+        nextSurface: 3 + Math.random() * 12,
+      };
+    }
+
+    // -------------------------------------------------------- simulation
+
+    function step() {
+      time += STEP;
+      for (const k of sharks) swim(k);
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        if (time - ripples[i].born > RIPPLE_LIFE) ripples.splice(i, 1);
+      }
+      for (let i = pellets.length - 1; i >= 0; i--) {
+        if (time - pellets[i].born > PELLET_LIFE) pellets.splice(i, 1);
+      }
+    }
+
+    function swim(k: Shark) {
+      const head = k.spine[0];
+      let fx = 0;
+      let fy = 0;
+
+      k.turn = clamp((k.turn + (Math.random() - 0.5) * 0.002) * 0.99, -0.006, 0.006);
+
+      // Soft walls, felt from far enough out that a fish turning in a wide
+      // arc still makes it. The bottom one sits above the floating bar.
+      const m = Math.max(80, k.length * 0.8);
+      const floor = height - 70;
+      if (head.x < m) fx += (m - head.x) / m;
+      if (head.x > width - m) fx -= (head.x - width + m) / m;
+      if (head.y < m) fy += (m - head.y) / m;
+      if (head.y > floor - m) fy -= (head.y - floor + m) / m;
+
+      for (const r of clear) {
+        const cx = clamp(head.x, r.x0, r.x1);
+        const cy = clamp(head.y, r.y0, r.y1);
+        const dx = head.x - cx;
+        const dy = head.y - cy;
+        const d = Math.hypot(dx, dy);
+        if (d === 0) {
+          // Inside the text: leave by the nearest edge.
+          const exits = [head.x - r.x0, r.x1 - head.x, head.y - r.y0, r.y1 - head.y];
+          const i = exits.indexOf(Math.min(...exits));
+          fx += [-2, 2, 0, 0][i];
+          fy += [0, 0, -2, 2][i];
+        } else if (d < 110) {
+          fx += (dx / d) * (1 - d / 110) * 1.5;
+          fy += (dy / d) * (1 - d / 110) * 1.5;
+        }
+      }
+
+      for (const o of sharks) {
+        if (o === k) continue;
+        const dx = head.x - o.spine[0].x;
+        const dy = head.y - o.spine[0].y;
+        const d = Math.hypot(dx, dy);
+        if (d > 0 && d < 70) {
+          fx += (dx / d) * (1 - d / 70) * 0.6;
+          fy += (dy / d) * (1 - d / 70) * 0.6;
+        }
+      }
+
+      // A moving hand scares them off. A still one, left over open water,
+      // makes them curious: they come up and nose at it.
+      let scared = false;
+      if (pointer) {
+        const dx = head.x - pointer.x;
+        const dy = head.y - pointer.y;
+        const d = Math.hypot(dx, dy);
+        if (time - pointer.seen < 0.8) {
+          if (d > 0 && d < 130) {
+            scared = true;
+            fx += (dx / d) * (1 - d / 130) * 2.5;
+            fy += (dy / d) * (1 - d / 130) * 2.5;
+            k.boost = Math.max(k.boost, 1.8 * (1 - d / 130));
+          }
+        } else if (pointer.open && time - pointer.seen > 1.5 && d > 30 && d < 320) {
+          fx -= (dx / d) * 0.9;
+          fy -= (dy / d) * 0.9;
+        } else if (pointer.open && d <= 30 && Math.random() < 0.015) {
+          ripples.push({ x: head.x, y: head.y, born: time, strength: 0.3 });
+        }
+      }
+
+      if (!scared) {
+        let target: (typeof pellets)[number] | null = null;
+        let best = 360;
+        for (const p of pellets) {
+          const d = Math.hypot(p.x - head.x, p.y - head.y);
+          if (d < best) {
+            best = d;
+            target = p;
+          }
+        }
+        if (target) {
+          if (best < 12) {
+            pellets.splice(pellets.indexOf(target), 1);
+            ripples.push({ x: target.x, y: target.y, born: time, strength: 0.6 });
+          } else {
+            fx += ((target.x - head.x) / best) * 1.2;
+            fy += ((target.y - head.y) / best) * 1.2;
+            k.boost = Math.max(k.boost, 0.5);
+          }
+        }
+      }
+
+      const want = Math.atan2(
+        Math.sin(k.angle + k.turn) + fy,
+        Math.cos(k.angle + k.turn) + fx,
+      );
+      // Turning is limited by radius, not by angle per step, so a faster
+      // fish swings wider. A startled or hungry one may cut tighter.
+      const v = k.speed * (1 + k.boost);
+      const maxTurn = (v / (k.length * TURN_RADIUS)) * (1 + k.boost * 1.5);
+      k.angle += clamp(angleDiff(want, k.angle), -maxTurn, maxTurn);
+
+      k.boost *= 0.96;
+      head.x += Math.cos(k.angle) * v;
+      head.y += Math.sin(k.angle) * v;
+
+      // Each segment trails the one ahead at a fixed distance, so the body
+      // follows the head through a turn. Each joint can only bend so far,
+      // stiff behind the head and looser toward the tail, so the body
+      // flexes like a fish instead of curling up like a worm.
+      const seg = k.length / (SEGMENTS - 1);
+      for (let i = 1; i < SEGMENTS; i++) {
+        const a = k.spine[i - 1];
+        const b = k.spine[i];
+        let dir = Math.atan2(b.y - a.y, b.x - a.x);
+        if (i > 1) {
+          const ahead = Math.atan2(a.y - k.spine[i - 2].y, a.x - k.spine[i - 2].x);
+          const t = i / (SEGMENTS - 1);
+          const bend = 0.04 + 0.2 * t * t;
+          dir = ahead + clamp(angleDiff(dir, ahead), -bend, bend);
+        }
+        b.x = a.x + Math.cos(dir) * seg;
+        b.y = a.y + Math.sin(dir) * seg;
+      }
+
+      k.phase += 0.1 + v * 0.07;
+
+      if (time > k.nextSurface) {
+        ripples.push({ x: head.x, y: head.y, born: time, strength: 0.45 });
+        k.nextSurface = time + 8 + Math.random() * 16;
+      }
+    }
+
+    // ---------------------------------------------------------- drawing
+
+    function put(col: number, row: number, ch: string, layer: number) {
+      if (col < 0 || row < 0 || col >= cols || row >= rows) return;
+      const i = row * cols + col;
+      if (fade[i] > (BAYER[(row & 7) * 8 + (col & 7)] + 0.5) / 64) return;
+      chars[i] = ch;
+      layers[i] = layer;
+    }
+
+    function render() {
+      chars.fill(" ");
+      layers.fill(0);
+
+      drawWater();
+      for (const r of ripples) drawRipple(r);
+      for (const k of sharks) drawShark(k);
+      for (const p of pellets) put(Math.floor(p.x / cellW), Math.floor(p.y / cellH), "o", BODY);
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.imageSmoothingEnabled = false;
+      ctx.globalAlpha = dark ? 0.14 : 0.1;
+      ctx.drawImage(light, 0, 0, light.width * DOT, light.height * DOT);
+      for (let layer = 1; layer < LAYER_STYLE.length; layer++) {
+        const [color, alpha] = LAYER_STYLE[layer];
+        ctx.fillStyle = colors[color];
+        ctx.globalAlpha = alpha;
+        for (let row = 0; row < rows; row++) {
+          let line = "";
+          let any = false;
+          for (let col = 0, i = row * cols; col < cols; col++, i++) {
+            if (layers[i] === layer) {
+              line += chars[i];
+              any = true;
+            } else {
+              line += " ";
+            }
+          }
+          if (any) ctx.fillText(line, 0, row * cellH);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function drawWater() {
+      const shift = Math.floor(drift / cellH);
+      for (let row = 0; row < rows; row++) {
+        const y = (row + 0.5) * cellH + drift;
+        for (let col = 0; col < cols; col++) {
+          const x = (col + 0.5) * cellW;
+          // Two slow interfering waves: drifting bands of light, like
+          // sunlight through the surface.
+          const v =
+            Math.sin(x * 0.017 + time * 0.55) * Math.sin(y * 0.029 - time * 0.4) +
+            0.6 * Math.sin((x - y * 1.7) * 0.011 + time * 0.75);
+          let ch = "";
+          if (v > 1.4) ch = "~";
+          else if (v > 1.28) ch = "-";
+          else if (v > 1.18) ch = ".";
+          // Sparse fixed grain, so calm water is not just empty paper.
+          else if (hash(col, row + shift) < 0.012) ch = ".";
+
+          if (!dark && v > 1.3 && hash(col + Math.floor(time * 3) * 7.3, row) < 0.08) {
+            // Sun catching the crests, in the light theme.
+            put(col, row, "*", GLINT);
+            continue;
+          }
+          if (ch) put(col, row, ch, WATER);
+        }
+      }
+    }
+
+    function drawRipple(r: Ripple) {
+      const age = time - r.born;
+      if (age < 0) return;
+      const radius = age * 55;
+      const amp = r.strength * (1 - age / RIPPLE_LIFE);
+      const c0 = Math.floor((r.x - radius - 12) / cellW);
+      const c1 = Math.ceil((r.x + radius + 12) / cellW);
+      const r0 = Math.floor((r.y - radius - 12) / cellH);
+      const r1 = Math.ceil((r.y + radius + 12) / cellH);
+      for (let row = r0; row <= r1; row++) {
+        for (let col = c0; col <= c1; col++) {
+          const d = Math.hypot((col + 0.5) * cellW - r.x, (row + 0.5) * cellH - r.y);
+          const ring = Math.exp(-(((d - radius) / 7) ** 2)) * amp;
+          if (ring > 0.5) put(col, row, "o", RIPPLE);
+          else if (ring > 0.28) put(col, row, "~", RIPPLE);
+          else if (ring > 0.14) put(col, row, ".", RIPPLE);
+        }
+      }
+    }
+
+    function drawShark(k: Shark) {
+      const pts = undulate(k);
+      const L = k.length;
+      const maxW = L * 0.095;
+
+      /** Point on the spine at t (0 head, 1 tail), and the way back from it. */
+      const at = (t: number) => {
+        const f = clamp(t, 0, 1) * (SEGMENTS - 1);
+        const i = Math.min(SEGMENTS - 2, Math.floor(f));
+        const u = f - i;
+        const a = pts[i];
+        const b = pts[i + 1];
+        return {
+          x: a.x + (b.x - a.x) * u,
+          y: a.y + (b.y - a.y) * u,
+          back: norm(b.x - a.x, b.y - a.y),
+        };
+      };
+
+      // Fins as filled triangles [root front, root back, tip], swept back the
+      // way a shark holds them: rigid, planing, not sculling.
+      const fins: [Vec, Vec, Vec][] = [];
+      const pair = (t0: number, t1: number, span: number, sweep: number) => {
+        const front = at(t0);
+        const rear = at(t1);
+        for (const side of [-1, 1]) {
+          const nx = -front.back.y * side;
+          const ny = front.back.x * side;
+          const w0 = widthAt(t0) * maxW * 0.8;
+          const w1 = widthAt(t1) * maxW * 0.8;
+          fins.push([
+            { x: front.x + nx * w0, y: front.y + ny * w0 },
+            { x: rear.x - rear.back.y * side * w1, y: rear.y + rear.back.x * side * w1 },
+            {
+              x: front.x + nx * (w0 + span) + front.back.x * span * sweep,
+              y: front.y + ny * (w0 + span) + front.back.y * span * sweep,
+            },
+          ]);
+        }
+      };
+      pair(0.24, 0.4, L * 0.2, 1.05); // pectoral
+      pair(0.62, 0.7, L * 0.06, 1); // pelvic
+
+      // Tail: an uneven fork, the long upper lobe that marks a shark, the
+      // whole fin swinging with the stroke.
+      const stem = at(1);
+      const tailBack = rotate(stem.back, Math.sin(k.phase - SEGMENTS * 0.45) * 0.3);
+      const lobe = (angle: number, len: number, inner: number): [Vec, Vec, Vec] => {
+        const tip = rotate(tailBack, angle);
+        const mid = rotate(tailBack, angle * 0.35);
+        return [
+          { x: stem.x - tailBack.x * L * 0.04, y: stem.y - tailBack.y * L * 0.04 },
+          { x: stem.x + mid.x * len * inner, y: stem.y + mid.y * len * inner },
+          { x: stem.x + tip.x * len, y: stem.y + tip.y * len },
+        ];
+      };
+      fins.push(lobe(0.5, L * 0.3, 0.45), lobe(-0.6, L * 0.15, 0.55));
+
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (const p of [...pts, ...fins.flat()]) {
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
+      }
+      const c0 = Math.floor((minX - maxW) / cellW);
+      const c1 = Math.ceil((maxX + maxW) / cellW);
+      const r0 = Math.floor((minY - maxW) / cellH);
+      const r1 = Math.ceil((maxY + maxW) / cellH);
+
+      for (let row = r0; row <= r1; row++) {
+        const y = (row + 0.5) * cellH;
+        for (let col = c0; col <= c1; col++) {
+          const x = (col + 0.5) * cellW;
+
+          // Nearest point on the spine, with where along it (t) and which
+          // side of it (sign of the cross product) this cell sits.
+          let best = Infinity;
+          let bestT = 0;
+          let side = 0;
+          let segDir: Vec = { x: 1, y: 0 };
+          for (let i = 0; i < SEGMENTS - 1; i++) {
+            const a = pts[i];
+            const b = pts[i + 1];
+            const abx = b.x - a.x;
+            const aby = b.y - a.y;
+            const len2 = abx * abx + aby * aby || 1;
+            const u = clamp(((x - a.x) * abx + (y - a.y) * aby) / len2, 0, 1);
+            const dx = x - (a.x + abx * u);
+            const dy = y - (a.y + aby * u);
+            const d = dx * dx + dy * dy;
+            if (d < best) {
+              best = d;
+              bestT = (i + u) / (SEGMENTS - 1);
+              side = abx * dy - aby * dx;
+              segDir = { x: abx, y: aby };
+            }
+          }
+
+          const d = Math.sqrt(best);
+          const w = widthAt(bestT) * maxW;
+          if (d < w) {
+            // The dorsal fin, seen edge-on from above: a short ridge down
+            // the middle of the back, in the colour of the day.
+            if (bestT > 0.34 && bestT < 0.5 && d < cellW * 0.6) {
+              put(col, row, strokeChar(segDir.x, segDir.y), PATCH);
+              continue;
+            }
+            const across = d / w;
+            // Darkest down the spine, lighter toward the flanks, a little
+            // brighter on the lit side, so the body reads as round.
+            const shade = clamp((1 - across) * 0.85 + (side < 0 ? 0.15 : 0), 0, 1);
+            put(col, row, BODY_RAMP[Math.round(shade * (BODY_RAMP.length - 1))], BODY);
+            continue;
+          }
+
+          // Fins share the body's ramp, thinning out toward their tips, so
+          // body and fins read as one silhouette.
+          for (const [a, b, c] of fins) {
+            const tip = barycentricTip(x, y, a, b, c);
+            if (tip >= 0) {
+              const shade = 0.55 * (1 - tip) + 0.1;
+              put(col, row, BODY_RAMP[Math.round(shade * (BODY_RAMP.length - 1))], BODY);
+              break;
+            }
+          }
+        }
+      }
+
+      // Eyes, on the sides of the head but inside its outline.
+      const eye = at(0.12);
+      const eyeOff = widthAt(0.12) * maxW * 0.6;
+      for (const side of [-1, 1]) {
+        put(
+          Math.floor((eye.x - eye.back.y * side * eyeOff) / cellW),
+          Math.floor((eye.y + eye.back.x * side * eyeOff) / cellH),
+          "o",
+          FIN,
+        );
+      }
+    }
+
+    /** The spine plus a travelling wave that grows toward the tail. */
+    function undulate(k: Shark): Vec[] {
+      // Sharks swim from the tail: the front barely moves.
+      const amp = k.length * 0.035;
+      return k.spine.map((p, i) => {
+        const t = i / (SEGMENTS - 1);
+        const a = k.spine[Math.max(0, i - 1)];
+        const b = k.spine[Math.max(1, i)];
+        const dir = norm(a.x - b.x, a.y - b.y);
+        const o = Math.sin(k.phase - i * 0.45) * amp * t ** 2.5;
+        return { x: p.x - dir.y * o, y: p.y + dir.x * o };
+      });
+    }
+
+    // ------------------------------------------------------------- loop
+
+    function frame(now: number) {
+      if (!running) return;
+      requestAnimationFrame(frame);
+      acc += Math.min(0.1, (now - last) / 1000);
+      last = now;
+      if (scrolled) followScroll();
+      // The fish only need 30 steps a second, but the water has to track the
+      // scroll on every frame or it judders against the smoothly moving page.
+      if (acc < STEP && drift === drawnDrift) return;
+      while (acc >= STEP) {
+        step();
+        acc -= STEP;
+      }
+      render();
+      drawnDrift = drift;
+    }
+
+    function followScroll() {
+      scrolled = false;
+      measureClear(canvas.getBoundingClientRect());
+      const next = reduced.matches ? 0 : window.scrollY * PARALLAX;
+      for (const p of [...ripples, ...pellets]) p.y -= next - drift;
+      drift = next;
+    }
+
+    function play() {
+      if (running || reduced.matches) return;
+      running = true;
+      last = performance.now();
+      acc = 0;
+      requestAnimationFrame(frame);
+    }
+
+    function pause() {
+      running = false;
+    }
+
+    function canvasPoint(event: PointerEvent): Vec | null {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      return y >= 0 && y <= rect.height ? { x, y } : null;
+    }
+
+    function inClear(p: Vec) {
+      return clear.some((r) => p.x > r.x0 && p.x < r.x1 && p.y > r.y0 && p.y < r.y1);
+    }
+
+    // --------------------------------------------------------- start up
+
+    readColors();
+    resize();
+
+    if (reduced.matches) {
+      // A still pond: let the fish settle into natural curves first.
+      for (let i = 0; i < 240; i++) step();
+      ripples.length = 0;
+    } else {
+      hint?.classList.remove("invisible");
+    }
+    render();
+    play();
+
+    new ResizeObserver(() => {
+      resize();
+      if (!running) render();
+    }).observe(canvas);
+
+    // The theme toggle flips a class and the pre-paint script sets the
+    // accent inline, so watching both attributes covers every colour change.
+    // Rendered straight away, not on the next tick, so a view transition
+    // around the theme switch captures the pond in its new colours.
+    new MutationObserver(() => {
+      readColors();
+      render();
+    }).observe(root, { attributes: true, attributeFilter: ["class", "style"] });
+
+    // The canvas is fixed but the text it keeps clear scrolls, so the clear
+    // areas move with every scroll.
+    // The surface (water, ripples, food) drifts with the scroll at a slower
+    // rate; the sharks are below it and keep swimming where they are.
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (running) {
+          scrolled = true;
+        } else {
+          followScroll();
+          render();
+        }
+      },
+      { passive: true },
+    );
+
+    // Each pane lands on the water the first time it scrolls into view.
+    const landed = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          landed.unobserve(entry.target);
+          if (!running) continue;
+          const origin = canvas.getBoundingClientRect();
+          const r = entry.boundingClientRect;
+          const corners = [
+            [r.left, r.top],
+            [r.right, r.top],
+            [r.right, r.bottom],
+            [r.left, r.bottom],
+          ];
+          corners.forEach(([x, y], i) => {
+            ripples.push({ x: x - origin.left, y: y - origin.top, born: time + i * 0.12, strength: 0.75 });
+          });
+        }
+      },
+      { threshold: 0.2 },
+    );
+    document.querySelectorAll("[data-pane]").forEach((pane) => landed.observe(pane));
+
+    reduced.addEventListener("change", () => {
+      if (reduced.matches) pause();
+      else play();
+      hint?.classList.toggle("invisible", reduced.matches);
+    });
+
+    window.addEventListener(
+      "pointermove",
+      (event) => {
+        const p = canvasPoint(event);
+        if (!p) {
+          pointer = null;
+          return;
+        }
+        const open =
+          !(event.target instanceof Element && event.target.closest(CONTROLS)) && !inClear(p);
+        const moved = Math.hypot(p.x - lastRipple.x, p.y - lastRipple.y);
+        // Jitter under a resting mouse should not count as moving.
+        if (!pointer || Math.hypot(p.x - pointer.x, p.y - pointer.y) > 3) {
+          pointer = { ...p, seen: time, open };
+        }
+        if (running && moved > 45 && time - lastRipple.at > 0.12 && !inClear(p)) {
+          ripples.push({ ...p, born: time, strength: 0.4 });
+          lastRipple = { ...p, at: time };
+        }
+      },
+      { passive: true },
+    );
+
+    // A finger that lifts, or a mouse that leaves the window, is gone.
+    window.addEventListener("pointerup", (event) => {
+      if (event.pointerType !== "mouse") pointer = null;
+    });
+    window.addEventListener("pointercancel", () => (pointer = null));
+    document.addEventListener("pointerout", (event) => {
+      if (!event.relatedTarget) pointer = null;
+    });
+
+    window.addEventListener("pointerdown", (event) => {
+      if (!running) return;
+      // Only open water: not the panes, the bar or anything clickable.
+      if (event.target instanceof Element && event.target.closest(CONTROLS)) return;
+      const p = canvasPoint(event);
+      if (!p || inClear(p)) return;
+      pellets.push({ ...p, born: time });
+      ripples.push({ ...p, born: time, strength: 1 });
+    });
+  }
+
+  // ---------------------------------------------------------- helpers
+
+  /**
+   * Half-width along the body, 0 = head, 1 = tail: a pointed snout, widest
+   * a third of the way back, then a long torpedo taper to a thin tail stem.
+   */
+  function widthAt(t: number) {
+    if (t < 0.32) return 0.12 + 0.88 * Math.sin((t / 0.32) * (Math.PI / 2)) ** 0.75;
+    return 0.07 + 0.93 * Math.cos(((t - 0.32) / 0.68) * (Math.PI / 2)) ** 1.15;
+  }
+
+  /**
+   * Where (x, y) sits in the triangle a, b, c: -1 if outside, otherwise the
+   * weight of the tip c, 0 along the root edge a-b and 1 at the tip.
+   */
+  function barycentricTip(x: number, y: number, a: Vec, b: Vec, c: Vec) {
+    const det = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+    if (det === 0) return -1;
+    const wa = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / det;
+    const wb = ((c.y - a.y) * (x - c.x) + (a.x - c.x) * (y - c.y)) / det;
+    const wc = 1 - wa - wb;
+    return wa < 0 || wb < 0 || wc < 0 ? -1 : wc;
+  }
+
+  /** The ASCII stroke closest to a direction (screen y points down). */
+  function strokeChar(dx: number, dy: number) {
+    let a = Math.atan2(dy, dx);
+    if (a < 0) a += Math.PI;
+    const eighth = Math.PI / 8;
+    if (a < eighth || a >= 7 * eighth) return "-";
+    if (a < 3 * eighth) return "\\";
+    if (a < 5 * eighth) return "|";
+    return "/";
+  }
+
+  function hash(x: number, y: number) {
+    const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+    return h - Math.floor(h);
+  }
+
+  function norm(x: number, y: number): Vec {
+    const d = Math.hypot(x, y) || 1;
+    return { x: x / d, y: y / d };
+  }
+
+  function rotate(v: Vec, a: number): Vec {
+    const c = Math.cos(a);
+    const s = Math.sin(a);
+    return { x: v.x * c - v.y * s, y: v.x * s + v.y * c };
+  }
+
+  function angleDiff(a: number, b: number) {
+    return Math.atan2(Math.sin(a - b), Math.cos(a - b));
+  }
+
+  function clamp(v: number, lo: number, hi: number) {
+    return Math.min(hi, Math.max(lo, v));
+  }
+</script>

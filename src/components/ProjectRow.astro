@@ -6,44 +6,40 @@ import type { Locale } from "~/i18n/content";
 interface Props {
   project: Project;
   stats?: RepoStats;
-  index: number;
   locale: Locale;
 }
 
-const { project, stats, index, locale } = Astro.props;
+const { project, stats, locale } = Astro.props;
 
 // Language and date come from GitHub; if the fetch failed they drop out of
-// the row rather than rendering "null" or a placeholder dash. A wall of
-// "0 ★" would say nothing, so stars only appear once earned.
+// the row rather than rendering "null" or a placeholder dash. A handful of
+// stars says more about who happened to visit than about the project, so
+// they only appear past a threshold.
+const MIN_STARS = 5;
 const meta = [
   stats?.language,
   formatMonth(stats?.pushedAt, locale),
-  stats?.stars ? `${stats.stars} ★` : null,
+  stats && stats.stars >= MIN_STARS ? `${stats.stars} ★` : null,
 ].filter(Boolean) as string[];
 
-const ordinal = String(index + 1).padStart(2, "0");
 const isLive = project.status === "live";
 ---
 
-<article
-  class="group relative grid grid-cols-[1.75rem_1fr] gap-x-2 border-t border-rule py-6 sm:gap-x-4"
->
+<article class="group relative border-t border-rule py-6">
   {/* Hairline that lights up on hover. The row's only affordance. */}
   <span
     aria-hidden="true"
     class="absolute -top-px left-0 h-px w-0 bg-accent transition-[width] duration-300 ease-out group-hover:w-full"
   ></span>
 
-  <div class="label pt-[0.4rem] tabular-nums transition-colors group-hover:!text-accent">
-    {ordinal}
-  </div>
-
-  <div class="min-w-0">
+  <div>
     {/* Stacked on phones: side by side, the metadata crowds the title. */}
     <div
       class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-6 sm:gap-y-1"
     >
-      <h3 class="font-display text-2xl leading-none sm:text-[1.75rem]">{project.name}</h3>
+      <h3 class="font-display text-xl font-semibold leading-none tracking-[-0.01em] [font-stretch:115%] sm:text-2xl">
+        {project.name}
+      </h3>
 
       <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 sm:gap-x-4">
         {meta.map((item) => <span class="label tabular-nums">{item}</span>)}
@@ -53,7 +49,7 @@ const isLive = project.status === "live";
       </div>
     </div>
 
-    <p class="mt-3 max-w-[62ch] text-[0.8125rem] leading-relaxed text-muted-foreground">
+    <p class="mt-3 max-w-[62ch] leading-relaxed text-muted-foreground">
       {project.blurb[locale]}
     </p>
 

@@ -1,0 +1,25 @@
+---
+/**
+ * One homelab figure, set straight on the water in the gap beside a pane.
+ * Marked `data-pond-clear`, so the water thins out around it and the
+ * sharks steer clear of it.
+ */
+interface Props {
+  label: string;
+  value: string;
+  text: string;
+  class?: string;
+}
+
+const { label, value, text, class: className } = Astro.props;
+---
+
+<p data-pond-clear class:list={["w-fit max-w-[22rem] self-center", className]}>
+  <span class="label block">{label}</span>
+  <span
+    class="mt-3 block font-display text-[3.5rem] font-extrabold leading-none tracking-[-0.04em] [font-stretch:125%] sm:text-[4.5rem]"
+  >
+    {value}
+  </span>
+  <span class="mt-3 block text-[1.0625rem] leading-snug text-muted-foreground">{text}</span>
+</p>

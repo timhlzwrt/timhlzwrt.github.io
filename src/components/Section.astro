@@ -1,19 +1,29 @@
 ---
+/**
+ * One pane on the pond: frosted glass, so the sharks swimming underneath show
+ * through as blurred colour and come out sharp on the other side. Rounded
+ * like the stones they stand in for.
+ */
 interface Props {
   id: string;
   heading: string;
-  /** Optional right-hand label in the rule, e.g. an entry count. */
-  aside?: string;
   class?: string;
 }
 
-const { id, heading, aside, class: className } = Astro.props;
+const { id, heading, class: className } = Astro.props;
 ---
 
-<section id={id} class:list={["mt-20 scroll-mt-20", className]} aria-labelledby={`${id}-heading`}>
-  <div class="flex items-baseline justify-between gap-4 border-b border-foreground pb-2">
-    <h2 id={`${id}-heading`} class="label !text-foreground">{heading}</h2>
-    {aside && <span class="label tabular-nums">{aside}</span>}
-  </div>
+<section
+  id={id}
+  data-pane
+  class:list={["glass rounded-2xl border border-rule/70 px-6 py-8 sm:px-10 sm:py-10", className]}
+  aria-labelledby={`${id}-heading`}
+>
+  <h2
+    id={`${id}-heading`}
+    class="mb-6 font-display text-[1.75rem] font-semibold leading-none tracking-[-0.02em] [font-stretch:115%] sm:text-[2rem]"
+  >
+    {heading}
+  </h2>
   <slot />
 </section>
