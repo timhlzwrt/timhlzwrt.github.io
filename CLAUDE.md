@@ -238,10 +238,15 @@ because Pages imposes them:
   convert an existing branch-deploy repo (needs `build_type=workflow` via the
   Pages API, already done once). Changing the Pages source can clear the
   custom domain, so verify `tjh.li` still resolves after any such change.
-- Pages can't set response headers, so there is deliberately no custom
-  caching policy or CSP, and nothing here needs one (static files, zero
-  third-party requests at runtime; the only runtime fetch is the
-  first-party status row). `public/sitemap.txt` is hand-maintained, so
+- Pages can't set response headers, but Cloudflare in front of it does: it
+  sends a CSP (`script-src 'unsafe-inline'` without 'self', `style-src
+  'self'`, `img-src 'self'`, `font-src 'self'`). The rule lives in the
+  Cloudflare dashboard, not in this repo. The build is shaped to fit it:
+  every script is inlined (`assetsInlineLimit` in astro.config.mjs), no
+  `style` attributes or inline `<style>`, no `data:` images or fonts. Break
+  one of those and that part silently stops working on the live site while
+  `npm run dev` looks fine. It also keeps out the Web Analytics beacon
+  Cloudflare injects, which the privacy section promises is not there. `public/sitemap.txt` is hand-maintained, so
   update it if a page is ever added.
 
 ## Conventions

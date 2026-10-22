@@ -15,6 +15,9 @@ const { locale } = Astro.props;
 const t = content[locale];
 const stats = await fetchRepoStats();
 const [guests, deploys, checks, backups] = t.lab.facts;
+// One step per name line. Classes rather than a style attribute, because
+// the CSP Cloudflare sends (style-src 'self') blocks inline styles.
+const RISE_DELAY = ["[animation-delay:120ms]", "[animation-delay:260ms]", "[animation-delay:400ms]"];
 ---
 
 <Pond />
@@ -32,7 +35,7 @@ const [guests, deploys, checks, backups] = t.lab.facts;
   >
     {
       NAME_PARTS.map((part, i) => (
-        <span data-pond-clear class="rise block w-fit" style={`animation-delay: ${120 + i * 140}ms`}>
+        <span data-pond-clear class:list={["rise block w-fit", RISE_DELAY[i]]}>
           <span class="initial">{part.initial}</span>{part.rest}{i < NAME_PARTS.length - 1 ? " " : ""}
         </span>
       ))
