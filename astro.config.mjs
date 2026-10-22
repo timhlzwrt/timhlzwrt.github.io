@@ -27,5 +27,9 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    // Cloudflare sends a CSP with `script-src 'unsafe-inline'` but no 'self',
+    // so a script file of our own is blocked: inline every script instead.
+    // Nothing else, since the same CSP blocks inline styles and data: fonts.
+    build: { assetsInlineLimit: (file) => file.endsWith(".js") },
   },
 });
