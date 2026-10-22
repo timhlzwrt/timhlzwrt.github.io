@@ -110,6 +110,11 @@
     let rows = 0;
     let chars: string[] = [];
     let layers = new Uint8Array(0);
+    /** Bit n set when layer n has something on that row, so empty rows cost nothing to draw. */
+    let rowLayers = new Uint8Array(0);
+    let waveX = new Float64Array(0);
+    let diagSin = new Float64Array(0);
+    let diagCos = new Float64Array(0);
     /** How strongly each cell is kept clear for text, 0 (open water) to 1. */
     let fade = new Float32Array(0);
     let clear: Rect[] = [];
@@ -206,6 +211,7 @@
       rows = Math.ceil(height / cellH);
       chars = new Array(cols * rows).fill(" ");
       layers = new Uint8Array(cols * rows);
+      rowLayers = new Uint8Array(rows);
 
       measureClear(rect);
       paintLight();
@@ -427,11 +433,13 @@
       if (fade[i] > (BAYER[(row & 7) * 8 + (col & 7)] + 0.5) / 64) return;
       chars[i] = ch;
       layers[i] = layer;
+      rowLayers[row] |= 1 << layer;
     }
 
     function render() {
       chars.fill(" ");
       layers.fill(0);
+      rowLayers.fill(0);
 
       drawWater();
       for (const r of ripples) drawRipple(r);
@@ -447,17 +455,23 @@
         ctx.fillStyle = colors[color];
         ctx.globalAlpha = alpha;
         for (let row = 0; row < rows; row++) {
+          if (!(rowLayers[row] & (1 << layer))) continue;
+          // Text cost grows with length, spaces included, so each line
+          // starts at its first glyph and stops at its last. The font is
+          // monospaced, so the offset keeps every glyph on its cell.
           let line = "";
-          let any = false;
+          let gap = "";
+          let start = -1;
           for (let col = 0, i = row * cols; col < cols; col++, i++) {
             if (layers[i] === layer) {
-              line += chars[i];
-              any = true;
-            } else {
-              line += " ";
+              if (start < 0) start = col;
+              line += gap + chars[i];
+              gap = "";
+            } else if (start >= 0) {
+              gap += " ";
             }
           }
-          if (any) ctx.fillText(line, 0, row * cellH);
+          ctx.fillText(line, start * cellW, row * cellH);
         }
       }
       ctx.globalAlpha = 1;
@@ -465,15 +479,28 @@
 
     function drawWater() {
       const shift = Math.floor(drift / cellH);
+      // Two slow interfering waves: drifting bands of light, like sunlight
+      // through the surface. Both split into a column and a row factor (the
+      // diagonal one through sin(a + b)), so the trigonometry runs once per
+      // column and row rather than once per cell.
+      if (waveX.length !== cols) {
+        waveX = new Float64Array(cols);
+        diagSin = new Float64Array(cols);
+        diagCos = new Float64Array(cols);
+      }
+      for (let col = 0; col < cols; col++) {
+        const x = (col + 0.5) * cellW;
+        waveX[col] = Math.sin(x * 0.017 + time * 0.55);
+        diagSin[col] = Math.sin(x * 0.011 + time * 0.75);
+        diagCos[col] = Math.cos(x * 0.011 + time * 0.75);
+      }
       for (let row = 0; row < rows; row++) {
         const y = (row + 0.5) * cellH + drift;
+        const waveY = Math.sin(y * 0.029 - time * 0.4);
+        const sinY = 0.6 * Math.sin(-y * 1.7 * 0.011);
+        const cosY = 0.6 * Math.cos(-y * 1.7 * 0.011);
         for (let col = 0; col < cols; col++) {
-          const x = (col + 0.5) * cellW;
-          // Two slow interfering waves: drifting bands of light, like
-          // sunlight through the surface.
-          const v =
-            Math.sin(x * 0.017 + time * 0.55) * Math.sin(y * 0.029 - time * 0.4) +
-            0.6 * Math.sin((x - y * 1.7) * 0.011 + time * 0.75);
+          const v = waveX[col] * waveY + diagSin[col] * cosY + diagCos[col] * sinY;
           let ch = "";
           if (v > 1.4) ch = "~";
           else if (v > 1.28) ch = "-";
@@ -594,7 +621,8 @@
           let best = Infinity;
           let bestT = 0;
           let side = 0;
-          let segDir: Vec = { x: 1, y: 0 };
+          let dirX = 1;
+          let dirY = 0;
           for (let i = 0; i < SEGMENTS - 1; i++) {
             const a = pts[i];
             const b = pts[i + 1];
@@ -609,7 +637,8 @@
               best = d;
               bestT = (i + u) / (SEGMENTS - 1);
               side = abx * dy - aby * dx;
-              segDir = { x: abx, y: aby };
+              dirX = abx;
+              dirY = aby;
             }
           }
 
@@ -619,7 +648,7 @@
             // The dorsal fin, seen edge-on from above: a short ridge down
             // the middle of the back, in the colour of the day.
             if (bestT > 0.34 && bestT < 0.5 && d < cellW * 0.6) {
-              put(col, row, strokeChar(segDir.x, segDir.y), PATCH);
+              put(col, row, strokeChar(dirX, dirY), PATCH);
               continue;
             }
             const across = d / w;

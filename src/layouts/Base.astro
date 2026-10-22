@@ -8,6 +8,10 @@ import { accentChoices } from "~/lib/palette";
 import ThemeToggle from "~/components/ThemeToggle.astro";
 import LangSwitch from "~/components/LangSwitch.astro";
 import StatusWidget from "~/components/StatusWidget.astro";
+// The same files the @font-face rules in global.css point at, so Vite emits
+// one asset for both and the preload is not a second download.
+import monaSans from "@fontsource-variable/mona-sans/files/mona-sans-latin-wdth-normal.woff2?url";
+import plexMono from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url";
 
 interface Props {
   locale: Locale;
@@ -89,6 +93,13 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
       )
     }
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {/*
+      Fetched alongside the stylesheet instead of after it: Mona Sans sets
+      the hero name, the largest paint, and the pond waits for Plex Mono
+      before it draws its first frame.
+    */}
+    <link rel="preload" href={monaSans} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={plexMono} as="font" type="font/woff2" crossorigin />
     <meta name="author" content={profile.name} />
 
     <meta property="og:type" content="website" />
