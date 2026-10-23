@@ -105,7 +105,7 @@ interface Content {
   };
   hero: { role: string; employer: string; pondHint: string; pondHintTouch: string };
   about: { heading: string; body: string[] };
-  tools: { heading: string; note: string; groups: ToolGroup[] };
+  tools: { heading: string; groups: ToolGroup[] };
   privacy: { heading: string; body: string[]; facts: [string, string][] };
   /**
    * Homelab figures that sit on the water beside the panes, one per gap.
@@ -114,14 +114,14 @@ interface Content {
    * private infrastructure repo.
    */
   lab: { facts: { label: string; value: string; text: string }[] };
-  work: { heading: string; note: string };
+  work: { heading: string };
   contact: { heading: string; body: string; links: { label: string; href: string }[] };
   notFound: { label: string; body: string; back: string };
   footer: {
     built: string;
     source: string;
     lastPlayed: string;
-    status: { label: string; checking: string; operational: string; issues: string };
+    status: { label: string; operational: string; issues: string };
   };
 }
 
@@ -130,7 +130,7 @@ const en: Content = {
   meta: {
     title: "Tim Jonas Holzwarth",
     description:
-      "Tim Jonas Holzwarth. Training as a Fachinformatiker für Systemintegration at a bank in Stuttgart. Python, Linux, a Proxmox homelab, and a stubborn interest in privacy.",
+      "Tim Jonas Holzwarth, training as a Fachinformatiker für Systemintegration at a bank in Stuttgart. Python, Linux and a Proxmox homelab.",
     imageAlt: "Tim Jonas Holzwarth, Fachinformatiker für Systemintegration in training, tjh.li",
   },
   nav: { about: "About", tools: "Tools", privacy: "Privacy", work: "Work", contact: "Contact" },
@@ -152,14 +152,12 @@ const en: Content = {
   about: {
     heading: "About",
     body: [
-      "I've been taking computers apart since long before anyone paid me for it. Most of what I know started with needing something that did not exist yet: my school's substitution plan had no public API, so I wrote dsbix to read it anyway. It ended up on PyPI, which was not the plan.",
-      `${TRAINING_LEAD.en[YEAR]} a Fachinformatiker für Systemintegration at a bank in Stuttgart. Systemintegration is the infrastructure side of the job: networks, servers, the things that have to stay up. Three years, alternating between the bank and vocational school.`,
-      "Most of what I know about infrastructure I learned by running my own and breaking it, which teaches you more than reading ever did (what runs there is under Work). Security is where I want to end up.",
+      `${TRAINING_LEAD.en[YEAR]} a Fachinformatiker für Systemintegration at a bank in Stuttgart, the infrastructure side of IT. Three years, alternating between the bank and vocational school.`,
+      "I mostly write software for problems I have myself, like dsbix for my school's substitution plan, and learn infrastructure by running a homelab. Long term I want to work in security.",
     ],
   },
   tools: {
     heading: "Tools",
-    note: "What I use, and what I am still learning.",
     groups: [
       { label: "Comfortable", items: ["Python", "TypeScript", "JavaScript", "Linux", "Bash", "Git"] },
       { label: "Infrastructure", items: ["Proxmox", "Virtualisation", "Networking", "Docker", "Caddy"] },
@@ -171,9 +169,8 @@ const en: Content = {
   privacy: {
     heading: "Privacy",
     body: [
-      "Most software treats the data you generate as its own. I would rather build things that do not, so this site collects nothing about you.",
-      "The repository data under Work was fetched when the site was built, not when you opened it. Your browser never talks to the GitHub API. The network tab will confirm all of it.",
-      "One honest caveat: the site is hosted on GitHub Pages, and GitHub keeps server logs, IP addresses included, that I have no access to or influence over.",
+      "This site collects nothing about you. The project data under Work is fetched from GitHub when the site is built, so your browser never contacts GitHub.",
+      "It is hosted on GitHub Pages, and GitHub keeps server logs with IP addresses that I have no access to.",
     ],
     facts: [
       ["Cookies", "None"],
@@ -188,29 +185,29 @@ const en: Content = {
       {
         label: "Homelab",
         value: "7",
-        text: "guests on one Proxmox host, from Home Assistant to the photo library",
+        text: "guests on one Proxmox host",
       },
       {
         label: "Deploys",
         value: "2 min",
-        text: "from push to the change running at home, measured",
+        text: "from push to running at home",
       },
       {
         label: "Monitoring",
         value: "10",
-        text: "checks every minute, plus a dead man's switch for when everything goes quiet",
+        text: "checks a minute, plus a dead man's switch",
       },
       {
         label: "Backups",
         value: "7 of 7",
-        text: "guests already restored from the nightly backup in isolation and compared with the live system",
+        text: "guests restored from backup in isolation and verified",
       },
     ],
   },
-  work: { heading: "Work", note: "Small things, built because they did not exist." },
+  work: { heading: "Work" },
   contact: {
     heading: "Contact",
-    body: "Email is the fastest way to reach me. Happy to talk about homelabs, Linux, privacy, or what an IT apprenticeship is actually like.",
+    body: "Email is the quickest way to reach me.",
     links: [
       { label: "Email", href: "mailto:hi@tjh.li" },
       { label: "GitHub", href: "https://github.com/timhlzwrt" },
@@ -219,7 +216,7 @@ const en: Content = {
   },
   notFound: {
     label: "Error",
-    body: "Wrong address, or something that used to be here and is not any more.",
+    body: "Nothing here. The page has moved or never existed.",
     back: "Back to the start",
   },
   footer: {
@@ -228,7 +225,6 @@ const en: Content = {
     lastPlayed: "Last played",
     status: {
       label: "Status",
-      checking: "Checking…",
       operational: "All systems operational",
       issues: "Degraded performance",
     },
@@ -240,7 +236,7 @@ const de: Content = {
   meta: {
     title: "Tim Jonas Holzwarth",
     description:
-      "Tim Jonas Holzwarth, Auszubildender zum Fachinformatiker für Systemintegration bei einer Bank in Stuttgart. Python, Linux, ein Proxmox-Homelab und ein hartnäckiges Interesse an Datenschutz.",
+      "Tim Jonas Holzwarth, Auszubildender zum Fachinformatiker für Systemintegration bei einer Bank in Stuttgart. Python, Linux und ein Proxmox-Homelab.",
     imageAlt:
       "Tim Jonas Holzwarth, Auszubildender zum Fachinformatiker für Systemintegration, tjh.li",
   },
@@ -269,14 +265,12 @@ const de: Content = {
   about: {
     heading: "Über mich",
     body: [
-      "Ich habe schon Computer zerlegt, lange bevor mich jemand dafür bezahlt hat. Das meiste habe ich gelernt, weil ich etwas gebraucht habe, das es noch nicht gab: Der Vertretungsplan meiner Schule hatte keine öffentliche API, also habe ich dsbix geschrieben, um ihn trotzdem auszulesen. Gelandet ist es auf PyPI, was so nicht geplant war.",
-      `${TRAINING_LEAD.de[YEAR]} Fachinformatiker für Systemintegration bei einer Bank in Stuttgart. Systemintegration ist die Infrastrukturseite des Berufs: Netzwerke, Server, die Dinge, die laufen müssen. Drei Jahre, im Wechsel zwischen Bank und Berufsschule.`,
-      "Das meiste über Infrastruktur habe ich gelernt, indem ich meine eigene betreibe und dabei kaputtmache. Das bringt mehr bei als jedes Lesen (was da läuft, steht unter Projekte). Security ist die Richtung, in die es gehen soll.",
+      `${TRAINING_LEAD.de[YEAR]} Fachinformatiker für Systemintegration bei einer Bank in Stuttgart, also auf der Infrastrukturseite der IT. Drei Jahre, im Wechsel zwischen Bank und Berufsschule.`,
+      "Software schreibe ich meist für Probleme, die ich selbst habe, etwa dsbix für den Vertretungsplan meiner Schule. Infrastruktur lerne ich mit meinem Homelab. Langfristig will ich in die IT-Sicherheit.",
     ],
   },
   tools: {
     heading: "Werkzeuge",
-    note: "Was ich benutze und was ich noch lerne.",
     groups: [
       { label: "Sicher", items: ["Python", "TypeScript", "JavaScript", "Linux", "Bash", "Git"] },
       { label: "Infrastruktur", items: ["Proxmox", "Virtualisierung", "Netzwerke", "Docker", "Caddy"] },
@@ -288,9 +282,8 @@ const de: Content = {
   privacy: {
     heading: "Datenschutz",
     body: [
-      "Die meiste Software behandelt die Daten, die man erzeugt, als wären es ihre eigenen. Ich baue lieber Sachen, die das nicht tun, also sammelt diese Seite nichts über dich.",
-      "Die Repository-Daten bei den Projekten wurden beim Bauen der Seite geholt, nicht beim Öffnen. Dein Browser spricht nie mit der GitHub-API. Im Netzwerk-Tab lässt sich das nachprüfen.",
-      "Eine ehrliche Einschränkung: Die Seite liegt auf GitHub Pages, und GitHub führt dort Server-Logs mit IP-Adressen, auf die ich weder Zugriff noch Einfluss habe.",
+      "Diese Seite sammelt nichts über dich. Die Projektdaten holt sie beim Bauen von GitHub, dein Browser spricht also nie mit GitHub.",
+      "Gehostet wird sie auf GitHub Pages, und GitHub speichert Server-Logs mit IP-Adressen, auf die ich keinen Zugriff habe.",
     ],
     facts: [
       ["Cookies", "Keine"],
@@ -305,29 +298,29 @@ const de: Content = {
       {
         label: "Homelab",
         value: "7",
-        text: "Gäste auf einem Proxmox-Host, von Home Assistant bis zur Fotobibliothek",
+        text: "Gäste auf einem Proxmox-Host",
       },
       {
         label: "Deployment",
         value: "2 min",
-        text: "vom Push, bis die Änderung zu Hause läuft, gemessen",
+        text: "vom Push, bis es zu Hause läuft",
       },
       {
         label: "Überwachung",
         value: "10",
-        text: "Prüfungen jede Minute, dazu ein Totmannschalter für den Fall, dass alles still wird",
+        text: "Prüfungen pro Minute, dazu ein Totmannschalter",
       },
       {
         label: "Sicherung",
         value: "7 von 7",
-        text: "Gästen schon isoliert aus der Nachtsicherung zurückgespielt und mit dem Live-System verglichen",
+        text: "Gästen isoliert aus der Sicherung wiederhergestellt und geprüft",
       },
     ],
   },
-  work: { heading: "Projekte", note: "Kleine Sachen, gebaut, weil es sie nicht gab." },
+  work: { heading: "Projekte" },
   contact: {
     heading: "Kontakt",
-    body: "Per E-Mail erreichst du mich am schnellsten. Schreib gern auch einfach so: über Homelabs, Linux, Datenschutz oder wie eine IT-Ausbildung wirklich ist.",
+    body: "Am schnellsten erreichst du mich per E-Mail.",
     links: [
       { label: "E-Mail", href: "mailto:hi@tjh.li" },
       { label: "GitHub", href: "https://github.com/timhlzwrt" },
@@ -336,7 +329,7 @@ const de: Content = {
   },
   notFound: {
     label: "Fehler",
-    body: "Falsche Adresse oder etwas, das es mal gab und jetzt nicht mehr.",
+    body: "Hier ist nichts. Die Seite wurde verschoben oder hat nie existiert.",
     back: "Zurück zum Anfang",
   },
   footer: {
@@ -345,7 +338,6 @@ const de: Content = {
     lastPlayed: "Zuletzt gespielt",
     status: {
       label: "Status",
-      checking: "Wird geprüft…",
       operational: "Alle Systeme betriebsbereit",
       issues: "Beeinträchtigt",
     },

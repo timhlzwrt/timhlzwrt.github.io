@@ -138,8 +138,7 @@ const RISE_DELAY = ["[animation-delay:120ms]", "[animation-delay:260ms]", "[anim
     heading={t.work.heading}
     class="md:col-span-10 md:col-start-3"
   >
-    <p class="text-sm text-muted-foreground">{t.work.note}</p>
-    <div class="mt-4">
+    <div>
       {
         projects.map((project) => (
           <ProjectRow
@@ -176,7 +175,6 @@ const RISE_DELAY = ["[animation-delay:120ms]", "[animation-delay:260ms]", "[anim
         ))
       }
     </dl>
-    <p class="mt-5 text-sm text-muted-foreground">{t.tools.note}</p>
   </Section>
   <LabFact {...deploys} class="md:col-span-4 md:col-start-1" />
 

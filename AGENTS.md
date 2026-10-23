@@ -16,8 +16,8 @@ npm run dev      # http://localhost:4321
 npm run build    # → dist/
 npm run preview  # serve the built output
 npm run check    # astro check: types + template diagnostics
-npm run og       # redraw public/og.png (needs chromium; run by hand, output is committed)
-npm run brand    # redraw public/brand/* (same deal as og)
+npm run og       # redraw public/og.png (needs chromium, or CHROMIUM=/path; run by hand, output is committed)
+npm run brand    # redraw public/brand/* and public/favicon.png (same deal as og)
 ```
 
 There is no test suite and no lint script. `npm run check` is the correctness
@@ -160,10 +160,11 @@ tokens as the site, so the card can't drift from the page. Rerun it if the
 name, role or `hero.employer` copy changes.
 
 **Brand assets** (`public/brand/`) are committed, not built, exactly like the
-social card. `npm run brand` redraws them with `scripts/generate-brand.mjs`,
-which imports `content.ts` and `palette.ts` so the avatars and banners cannot
-drift from the site. Everything is locked to `PALETTE[0]`, since a profile
-picture cannot re-roll its accent the way the site does. See BRAND.md.
+social card, and so is the favicon (`public/favicon.png`). `npm run brand`
+redraws them with `scripts/generate-brand.mjs`, which imports `content.ts`
+so the avatars and banners cannot drift from the site. They are monochrome,
+since a profile picture cannot re-roll its accent the way the site does; the
+social card does use `PALETTE[0]`. See BRAND.md.
 
 **`security.txt` is generated, not static.** It lives at
 `src/pages/.well-known/security.txt.ts`, not in `public/`, so that RFC 9116's
@@ -182,8 +183,7 @@ shadcn/ui naming (`--background`, `--foreground`, `--muted-foreground`,
 `--accent`, …) even though nothing in the project depends on shadcn. Fonts
 are self-hosted via fontsource (Mona Sans, variable weight and width, for
 headings and body text; IBM Plex Mono only for the small `label` metadata and
-the pond), Latin subsets only. `@fontsource/instrument-serif` is no longer used by the site;
-it stays installed because the og and brand scripts still draw with it.
+the pond), Latin subsets only. The og and brand scripts draw with the same two.
 
 **The accent colour** picks one of six preset hues by UTC calendar day
 (`Math.floor(Date.now() / 86400000) % palette.length`), each with a

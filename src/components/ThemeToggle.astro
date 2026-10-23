@@ -36,7 +36,14 @@ const { label } = Astro.props;
   // Pressed means dark. Set here rather than in the markup because the theme
   // is decided by the inline script in <head>, so the server-rendered value
   // would be wrong for half of all visitors.
-  const sync = (dark: boolean) => toggle?.setAttribute("aria-pressed", String(dark));
+  // The theme-color tags in Base.astro only know the OS setting, so a theme
+  // picked here would leave the browser's toolbar in the other colour.
+  const themeColors = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+  const [lightColor, darkColor] = Array.from(themeColors, (meta) => meta.content);
+  const sync = (dark: boolean) => {
+    toggle?.setAttribute("aria-pressed", String(dark));
+    themeColors.forEach((meta) => (meta.content = dark ? darkColor : lightColor));
+  };
 
   sync(document.documentElement.classList.contains("dark"));
 

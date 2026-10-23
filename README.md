@@ -86,8 +86,9 @@ import from TypeScript.
 
 ## Design
 
-Instrument Serif for display, IBM Plex Mono for everything else. Self-hosted,
-Latin subsets only, two weights. Warm paper and ink.
+Mona Sans (variable weight and width) for everything, IBM Plex Mono for the
+small labels and the ASCII pond. Self-hosted, Latin subsets only. Cool
+near-neutrals, one accent that changes daily.
 
 Tokens in `src/styles/global.css` follow shadcn/ui naming (`--background`,
 `--foreground`, `--muted-foreground`, `--accent`, …). Nothing depends on
@@ -96,8 +97,9 @@ default one.
 
 ## Brand assets
 
-`npm run brand` redraws the avatars and social banners in `public/brand/`
-from the same fonts, colours and copy the site uses. Output is committed.
+`npm run brand` redraws the avatars and social banners in `public/brand/`, and
+the favicon, from the same fonts, colours and copy the site uses. Output is
+committed.
 See [BRAND.md](BRAND.md).
 
 ## Deploying
