@@ -216,7 +216,7 @@ const en: Content = {
   },
   notFound: {
     label: "Error",
-    body: "Nothing here. The page has moved or never existed.",
+    body: "There is no page at this address. Maybe a typo, maybe an old link.",
     back: "Back to the start",
   },
   footer: {
@@ -329,7 +329,7 @@ const de: Content = {
   },
   notFound: {
     label: "Fehler",
-    body: "Hier ist nichts. Die Seite wurde verschoben oder hat nie existiert.",
+    body: "Unter dieser Adresse gibt es keine Seite. Vielleicht ein Tippfehler, vielleicht ein alter Link.",
     back: "Zurück zum Anfang",
   },
   footer: {

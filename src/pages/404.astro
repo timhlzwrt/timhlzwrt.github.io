@@ -1,13 +1,13 @@
 ---
 import Base from "~/layouts/Base.astro";
 import Pond from "~/components/Pond.astro";
-import { content } from "~/i18n/content";
+import { content, profile } from "~/i18n/content";
 
 /**
  * GitHub Pages serves exactly one top-level 404.html for every unmatched
- * path, so this page can't know which language was wanted. It shows both
- * rather than guessing, which is also the cheapest way to make the German
- * side of the site not feel like an afterthought.
+ * path, so the build can't know which language was wanted and the page
+ * carries both. The browser can know, though: the script below puts German
+ * first for a missed /de/ path or a visitor who already chose German.
  */
 const en = content.en;
 const de = content.de;
@@ -23,10 +23,15 @@ const de = content.de;
     >
       4<span class="initial">0</span>4
     </h1>
+    <p id="missing-path" hidden class="label mt-6 max-w-[40ch] break-all"></p>
   </section>
 
-  <div data-pane class="mt-14 max-w-xl space-y-6 glass rounded-2xl border border-rule/70 px-6 py-8 sm:px-10">
-    <div class="max-w-[52ch]">
+  <div
+    id="not-found"
+    data-pane
+    class="mt-14 max-w-xl divide-y divide-rule glass rounded-2xl border border-rule/70 px-6 sm:px-10"
+  >
+    <div class="max-w-[52ch] py-8" lang="en">
       <p class="leading-relaxed">{en.notFound.body}</p>
       <p class="mt-2">
         <a href="/" class="text-sm link-underline">
@@ -35,7 +40,7 @@ const de = content.de;
       </p>
     </div>
 
-    <div class="max-w-[52ch] border-t border-rule pt-6" lang="de">
+    <div id="not-found-de" class="max-w-[52ch] py-8" lang="de">
       <p class="leading-relaxed">{de.notFound.body}</p>
       <p class="mt-2">
         <a href="/de/" class="text-sm link-underline">
@@ -44,4 +49,34 @@ const de = content.de;
       </p>
     </div>
   </div>
+
+  {/*
+    Inline and right after the markup, not a bundled module, so the reorder
+    lands before first paint instead of visibly swapping the two blocks.
+  */}
+  <script is:inline define:vars={{ domain: profile.domain }}>
+    (function () {
+      var path = location.pathname;
+      var shown = path;
+      try {
+        shown = decodeURIComponent(path);
+      } catch (e) {
+        /* a malformed escape like /%E0: show it as typed */
+      }
+      var missing = document.getElementById("missing-path");
+      missing.textContent = domain + shown;
+      missing.hidden = false;
+
+      var choice = null;
+      try {
+        choice = localStorage.getItem("lang");
+      } catch (e) {
+        /* storage blocked; the path alone decides */
+      }
+      if (path.indexOf("/de/") === 0 || choice === "de") {
+        var block = document.getElementById("not-found-de");
+        block.parentNode.prepend(block);
+      }
+    })();
+  </script>
 </Base>
