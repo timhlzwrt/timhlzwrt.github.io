@@ -17,7 +17,11 @@ interface Props {
   locale: Locale;
   title?: string;
   description?: string;
-  /** Set on pages that shouldn't be indexed or given a canonical (e.g. 404). */
+  /**
+   * Set on pages that shouldn't be indexed and have no URL of their own or
+   * other-language twin (the 404): drops the canonical, hreflang, og:url and
+   * the language switch, which would all point at pages that don't exist.
+   */
   noindex?: boolean;
   /** Section links in the bottom bar. Omitted on the 404 page. */
   showNav?: boolean;
@@ -106,7 +110,7 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:locale" content={locale === "de" ? "de_DE" : "en_GB"} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
@@ -307,7 +311,7 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
       }
 
       <div class="flex h-full shrink-0 items-center border-l border-rule pl-1">
-        <LangSwitch locale={locale} />
+        {!noindex && <LangSwitch locale={locale} />}
         <ThemeToggle label={t.ui.themeLabel} />
       </div>
     </header>
