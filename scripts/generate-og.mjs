@@ -7,8 +7,9 @@
  * committed. This file exists so that image is reproducible rather than a
  * binary nobody can edit.
  *
- * Needs `chromium` on PATH. Text and colours are read from the same sources
- * the site uses, so the card cannot drift from the page it represents.
+ * Needs Chromium: `chromium` on PATH, or its path in CHROMIUM. Text and
+ * colours are read from the same sources the site uses, so the card cannot
+ * drift from the page it represents.
  */
 
 import { execFileSync } from "node:child_process";
@@ -27,31 +28,27 @@ const HEIGHT = 630;
 
 /** Inlined as data URIs so Chromium needs no network and no system fonts. */
 const font = (pkg, file) =>
-  readFileSync(join(root, "node_modules", "@fontsource", pkg, "files", file)).toString("base64");
+  readFileSync(join(root, "node_modules", pkg, "files", file)).toString("base64");
 
-const serif = font("instrument-serif", "instrument-serif-latin-400-normal.woff2");
-const mono400 = font("ibm-plex-mono", "ibm-plex-mono-latin-400-normal.woff2");
-const mono500 = font("ibm-plex-mono", "ibm-plex-mono-latin-500-normal.woff2");
+const sans = font("@fontsource-variable/mona-sans", "mona-sans-latin-wdth-normal.woff2");
+const mono500 = font("@fontsource/ibm-plex-mono", "ibm-plex-mono-latin-500-normal.woff2");
 
 const t = content.en;
 
-// The card can't reroll per view, so it takes the first palette entry, the
-// same one the no-JS fallback in global.css uses, rather than a colour a
-// given visitor may never see.
+// The dark theme, because the card is shown in feeds of either colour and
+// the dark one is where the pond's light shows. It can't reroll per view, so
+// it takes the first palette entry, the same one the no-JS fallback in
+// global.css uses, rather than a colour a given visitor may never see.
 const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <style>
   @font-face {
-    font-family: "Instrument Serif";
-    font-weight: 400;
-    src: url(data:font/woff2;base64,${serif}) format("woff2");
-  }
-  @font-face {
-    font-family: "IBM Plex Mono";
-    font-weight: 400;
-    src: url(data:font/woff2;base64,${mono400}) format("woff2");
+    font-family: "Mona Sans";
+    font-weight: 200 900;
+    font-stretch: 75% 125%;
+    src: url(data:font/woff2;base64,${sans}) format("woff2");
   }
   @font-face {
     font-family: "IBM Plex Mono";
@@ -60,11 +57,10 @@ const html = `<!doctype html>
   }
 
   :root {
-    --background: oklch(0.982 0.006 85);
-    --foreground: oklch(0.22 0.012 60);
-    --muted-foreground: oklch(0.46 0.012 65);
-    --rule: oklch(0.855 0.012 75);
-    --accent: ${PALETTE[0][0]};
+    --background: oklch(0.16 0.014 265);
+    --foreground: oklch(0.94 0.008 265);
+    --muted-foreground: oklch(0.7 0.016 265);
+    --accent: ${PALETTE[0][1]};
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -72,18 +68,26 @@ const html = `<!doctype html>
   body {
     width: ${WIDTH}px;
     height: ${HEIGHT}px;
-    display: flex;
-    flex-direction: column;
-    padding: 60px 72px;
     background: var(--background);
     color: var(--foreground);
-    font-family: "IBM Plex Mono", monospace;
-    font-feature-settings: "tnum" 1, "zero" 1;
+    font-family: "Mona Sans", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+
+  main {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 80px;
+  }
+
   .label {
-    font-size: 15px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 16px;
     font-weight: 500;
     line-height: 1;
     letter-spacing: 0.14em;
@@ -91,48 +95,49 @@ const html = `<!doctype html>
     color: var(--muted-foreground);
   }
 
-  header, footer { display: flex; align-items: baseline; }
-  header { justify-content: space-between; border-bottom: 1px solid var(--rule); padding-bottom: 20px; }
-  footer { gap: 34px; border-top: 1px solid var(--rule); padding-top: 20px; }
-
-  .domain {
-    font-size: 21px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-
-  main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-
   h1 {
-    font-family: "Instrument Serif", serif;
-    font-weight: 400;
-    font-size: 106px;
-    line-height: 0.95;
-    letter-spacing: -0.015em;
+    margin-top: 28px;
+    font-size: 112px;
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 0.86;
+    letter-spacing: -0.045em;
   }
-  .initial { color: var(--accent); }
+  h1 span { display: block; }
+  .initial { display: inline; color: var(--accent); }
 
-  .role { margin-top: 30px; font-size: 22px; font-weight: 500; }
-  .employer { margin-top: 8px; font-size: 22px; color: var(--muted-foreground); }
+  .role { margin-top: 36px; font-size: 26px; line-height: 1.3; }
+  .role b { font-weight: 600; }
+  .role span { color: var(--muted-foreground); }
 </style>
 </head>
 <body>
-  <header>
-    <span class="domain">${profile.domain}</span>
-    <span class="label">${profile.city}</span>
-  </header>
-
+  <canvas id="light"></canvas>
   <main>
-    <h1>${NAME_PARTS.map((p) => `<span class="initial">${p.initial}</span>${p.rest}`).join(" ")}</h1>
-    <p class="role">${t.hero.role}</p>
-    <p class="employer">${t.hero.employer}</p>
+    <p class="label">${profile.domain}</p>
+    <h1>${NAME_PARTS.map((p) => `<span><span class="initial">${p.initial}</span>${p.rest}</span>`).join("")}</h1>
+    <p class="role"><b>${t.hero.role}</b> <span>${t.hero.employer}</span></p>
   </main>
-
-  <footer>
-    ${Object.values(t.nav)
-      .map((label) => `<span class="label">${label}</span>`)
-      .join("\n    ")}
-  </footer>
+  <script>
+    // The pond's moonlight, same dither and formula as Pond.astro, with the
+    // dot scaled up a little for a card that is always shown shrunk.
+    const BAYER = [0,32,8,40,2,34,10,42,48,16,56,24,50,18,58,26,12,44,4,36,14,46,6,38,60,28,52,20,
+      62,30,54,22,3,35,11,43,1,33,9,41,51,19,59,27,49,17,57,25,15,47,7,39,13,45,5,37,63,31,55,23,61,
+      29,53,21];
+    const c = document.getElementById("light");
+    const w = (c.width = Math.ceil(innerWidth / 4));
+    const h = (c.height = Math.ceil(innerHeight / 4));
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--foreground");
+    ctx.globalAlpha = 0.14;
+    const sx = w * 0.78, sy = -h * 0.2, reach = Math.max(w, h) * 0.8;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const level = Math.max(0, 1 - Math.hypot(x - sx, y - sy) / reach) ** 2 * 0.7;
+        if (level > (BAYER[(y & 7) * 8 + (x & 7)] + 0.5) / 64) ctx.fillRect(x, y, 1, 1);
+      }
+    }
+  </script>
 </body>
 </html>
 `;
@@ -143,7 +148,7 @@ const shot = join(work, "card.png");
 writeFileSync(page, html);
 
 execFileSync(
-  "chromium",
+  process.env.CHROMIUM ?? "chromium",
   [
     "--headless",
     "--disable-gpu",

@@ -92,7 +92,8 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
         </>
       )
     }
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     {/*
       Fetched alongside the stylesheet instead of after it: Mona Sans sets
       the hero name, the largest paint, and the pond waits for Plex Mono
@@ -226,7 +227,6 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
 
         <StatusWidget
           label={t.footer.status.label}
-          checking={t.footer.status.checking}
           operational={t.footer.status.operational}
           issues={t.footer.status.issues}
         />
@@ -245,10 +245,6 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
                 class="link-underline">{t.footer.source}</a
               >.
             </p>
-            {/*
-              The section tabs are desktop-only, so on a phone this link is the
-              only way back up without a long scroll.
-            */}
             <p>
               <a href="#main" class="link-underline">
                 <span aria-hidden="true">↑ </span>{t.ui.backToTop}
@@ -281,8 +277,9 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
     <header
       class="fixed inset-x-3 bottom-3 z-40 mx-auto flex h-[3.375rem] max-w-fit items-center gap-1 glass rounded-2xl border border-rule/70 p-1 text-sm shadow-[0_8px_30px_-12px_rgb(0_0_0/0.35)] [view-transition-name:status-bar]"
     >
+      {/* On the home page it scrolls back up instead of reloading the page. */}
       <a
-        href={locale === "de" ? "/de/" : "/"}
+        href={showNav ? "#main" : locale === "de" ? "/de/" : "/"}
         class="flex h-full shrink-0 items-center rounded-xl px-3 font-display font-bold tracking-[-0.01em] [font-stretch:125%] transition-colors hover:text-accent"
       >
         {profile.domain}

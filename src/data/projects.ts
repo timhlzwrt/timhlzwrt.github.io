@@ -39,8 +39,8 @@ export const projects: Project[] = [
     name: "Homelab",
     status: "live",
     blurb: {
-      en: "The servers at home: Home Assistant, Immich for photos and Pi-hole as the network's DNS run as guests on a Proxmox host. Every config lives in Git. A push gets checked in CI, and only a green state goes out: the machines fetch it themselves, nothing at home is reachable from GitHub. Gatus checks every service, a dead man's switch speaks up when the checks themselves go quiet, and every guest is backed up nightly.",
-      de: "Die Server zu Hause: Home Assistant, Immich für Fotos und Pi-hole als DNS fürs ganze Netz laufen als Gäste auf einem Proxmox-Host. Jede Konfiguration liegt in Git. Ein Push wird in der CI geprüft, und nur ein grüner Stand geht raus: Die Rechner holen ihn selbst ab, von GitHub aus ist zu Hause nichts erreichbar. Gatus prüft jeden Dienst, ein Totmannschalter meldet sich, wenn die Prüfungen selbst verstummen, und jeder Gast wird jede Nacht gesichert.",
+      en: "Home Assistant, Immich and Pi-hole as guests on a Proxmox host. All configuration is in Git; once CI passes, the machines pull the change themselves, so nothing at home is reachable from GitHub. Gatus watches every service and every guest is backed up nightly.",
+      de: "Home Assistant, Immich und Pi-hole als Gäste auf einem Proxmox-Host. Die gesamte Konfiguration liegt in Git; ist die CI grün, holen sich die Rechner die Änderung selbst, von GitHub aus ist zu Hause nichts erreichbar. Gatus überwacht jeden Dienst, jeder Gast wird nachts gesichert.",
     },
   },
   {
@@ -48,8 +48,8 @@ export const projects: Project[] = [
     repo: "atlas",
     status: "live",
     blurb: {
-      en: "A 3D globe on which you can explore the statistics and history of every country since 1945, leadership records included. Every fact is sourced from the World Bank, Wikidata and Natural Earth; nothing is fabricated.",
-      de: "Ein 3D-Globus, auf dem man Statistiken und Geschichte jedes Landes seit 1945 erkunden kann, inklusive Führungsdaten. Jede Angabe stammt aus Weltbank, Wikidata und Natural Earth, nichts ist erfunden.",
+      en: "A 3D globe with statistics and history for every country since 1945, leadership records included. Data from the World Bank, Wikidata and Natural Earth.",
+      de: "Ein 3D-Globus mit Statistiken und Geschichte jedes Landes seit 1945, inklusive Führungsdaten. Daten von Weltbank, Wikidata und Natural Earth.",
     },
     links: [
       { label: LIVE, href: "https://atlas.tjh.li" },
@@ -63,8 +63,8 @@ export const projects: Project[] = [
     repo: "dsbix",
     status: "unmaintained",
     blurb: {
-      en: "My school's substitution plan lived in DSBmobile, which has no public API. dsbix reads it anyway: a Python library built on nerrixde's DSBApi and published to PyPI, plus a small HTTP layer so other languages can get at the data too. Every school sets DSBmobile up differently, so the field mapping is deliberately left adjustable.",
-      de: "Der Vertretungsplan meiner Schule lag in DSBmobile, und DSBmobile hat keine öffentliche API. dsbix liest ihn trotzdem aus: eine Python-Bibliothek auf Basis der DSBApi von nerrixde, veröffentlicht auf PyPI, dazu eine kleine HTTP-Schicht, damit auch andere Sprachen an die Daten kommen. Weil jede Schule DSBmobile anders einrichtet, bleibt das Feld-Mapping bewusst anpassbar.",
+      en: "A Python library on PyPI that reads substitution plans from DSBmobile, which has no public API. Built on nerrixde's DSBApi, with a small HTTP layer for other languages. The field mapping is configurable, since every school sets DSBmobile up differently.",
+      de: "Eine Python-Bibliothek auf PyPI, die Vertretungspläne aus DSBmobile ausliest, das keine öffentliche API hat. Basiert auf der DSBApi von nerrixde, dazu eine kleine HTTP-Schicht für andere Sprachen. Das Feld-Mapping ist anpassbar, weil jede Schule DSBmobile anders einrichtet.",
     },
     links: [
       { label: { en: "PyPI", de: "PyPI" }, href: "https://pypi.org/project/dsbix/" },
@@ -77,8 +77,8 @@ export const projects: Project[] = [
     repo: "timhlzwrt.github.io",
     status: "live",
     blurb: {
-      en: "This site: static HTML, rebuilt every night so the project data stays current without your visit asking GitHub. No tracking, no cookies, and the water and the sharks are about 5 KB of hand-written canvas code rather than a library.",
-      de: "Diese Seite: statisches HTML, das jede Nacht neu gebaut wird, damit die Projektdaten aktuell bleiben, ohne dass dein Besuch GitHub fragt. Kein Tracking, keine Cookies, und Wasser und Haie sind gut 5 KB selbst geschriebener Canvas-Code statt einer Bibliothek.",
+      en: "This site. Static HTML, rebuilt nightly so the project data stays current. No tracking, no cookies; the pond is about 5 KB of hand-written canvas code.",
+      de: "Diese Seite. Statisches HTML, jede Nacht neu gebaut, damit die Projektdaten aktuell bleiben. Kein Tracking, keine Cookies; der Teich ist gut 5 KB selbst geschriebener Canvas-Code.",
     },
     links: [{ label: SOURCE, href: "https://github.com/timhlzwrt/timhlzwrt.github.io" }],
   },
