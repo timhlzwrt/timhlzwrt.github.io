@@ -14,10 +14,10 @@
  * Nothing between the reds and the yellows, so no day lands on orange.
  *
  * The hue is picked from the date, not the load (see Base.astro), so it's
- * stable across a day rather than per reload now. status.tjh.li keeps its
- * own copy of this exact array plus the same day-index formula, so the two
- * sites land on the same hue without a cookie or a request between them.
- * If this array changes, that copy needs updating by hand to match.
+ * stable across a day rather than per reload now. status.tjh.li reads the
+ * active list from /accent.json and uses the same day-index formula, so the
+ * two sites land on the same hue. The Set accent workflow maps the colour
+ * names to these hues, so a changed hue needs changing there too.
  *
  * Keep this file import-free: scripts/generate-og.mjs loads it through Node's
  * type stripping, which does not understand the `~/*` alias.

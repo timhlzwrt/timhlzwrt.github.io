@@ -1,0 +1,89 @@
+name: Set accent
+
+# The friendly way to change src/data/accent.ts: pick a colour in the Run
+# workflow form (linked from the internal dashboard), and this writes the
+# file, commits it to main and starts a deploy.
+on:
+  workflow_dispatch:
+    inputs:
+      colour:
+        description: Colour
+        type: choice
+        default: daily
+        options:
+          - daily
+          - moss
+          - teal
+          - blue
+          - violet
+          - plum
+          - rose
+          - other hue
+      hue:
+        description: 'Hue from 0 to 359, only read for "other hue"'
+        type: string
+        required: false
+
+permissions:
+  contents: write
+  # A push made with GITHUB_TOKEN does not trigger the deploy workflow, a
+  # dispatch does.
+  actions: write
+
+concurrency:
+  group: accent
+  cancel-in-progress: false
+
+jobs:
+  set:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Always main, whichever ref the run was started from, since that is
+      # where the commit goes.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      # The hues are those of src/lib/palette.ts, so a name lands on its tuned
+      # pair. Checked here rather than left to the build, so a bad hue fails
+      # this run and never reaches main.
+      - name: Write src/data/accent.ts
+        env:
+          COLOUR: ${{ inputs.colour }}
+          HUE: ${{ inputs.hue }}
+        run: |
+          case "$COLOUR" in
+            daily) value='"daily"' ;;
+            moss) value=130 ;;
+            teal) value=180 ;;
+            blue) value=230 ;;
+            violet) value=275 ;;
+            plum) value=310 ;;
+            rose) value=350 ;;
+            "other hue")
+              if [[ ! "$HUE" =~ ^[0-9]{1,3}$ ]] || (( 10#$HUE > 359 )); then
+                echo "::error::Hue must be a whole number from 0 to 359, got '$HUE'"
+                exit 1
+              fi
+              value=$((10#$HUE)) ;;
+            *) echo "::error::Unknown colour '$COLOUR'"; exit 1 ;;
+          esac
+          sed -i -E "s/^(export const ACCENT: \"daily\" \| number = ).*;$/\1$value;/" src/data/accent.ts
+          grep -qxF "export const ACCENT: \"daily\" | number = $value;" src/data/accent.ts \
+            || { echo "::error::Could not find the ACCENT line in src/data/accent.ts"; exit 1; }
+          echo "value=$value" >> "$GITHUB_ENV"
+
+      - name: Commit and deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then
+            echo "Accent is already $value, nothing to change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Set the accent to ${value//\"/}"
+          git push origin HEAD:main
+          gh workflow run deploy.yml --ref main
