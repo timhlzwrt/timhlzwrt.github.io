@@ -1,6 +1,9 @@
 /**
- * The accent colour the whole site uses. Edit this line, commit to main, and
- * the deploy has it live for every visitor a minute or two later.
+ * The accent colour the whole site uses. The easy way to change it is the
+ * "Set accent" workflow (Actions tab, linked from the internal dashboard),
+ * which rewrites the line below and deploys. Editing it by hand and pushing
+ * to main works the same. Either way it is live a minute or two later, and
+ * on status.tjh.li, which reads it from /accent.json, within ten more.
  *
  *   "daily"  rotates through the six colours in src/lib/palette.ts, one per
  *            UTC day.

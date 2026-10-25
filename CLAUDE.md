@@ -196,15 +196,20 @@ whole day rather than re-rolling per page load.
 `src/data/accent.ts` is the switch: `"daily"` keeps that rotation, a hue
 number pins one colour for everyone (a palette hue uses its tuned pair, any
 other gets the palette's lightness and a muted chroma), and anything else
-throws during the build so a typo never deploys. The internal dashboard links
-to that file's GitHub edit page, which is how Tim changes it. All six live in
+throws during the build so a typo never deploys. Tim changes it through the
+*Set accent* workflow (`.github/workflows/accent.yml`, linked from the internal
+dashboard): a dropdown of the six names plus "other hue", which rewrites the
+`ACCENT` line, commits to main and dispatches the deploy (a push made with
+`GITHUB_TOKEN` would not trigger it). Its `case` maps names to hues, so keep
+it in step if a palette hue changes, and keep the `ACCENT` line's exact shape,
+which its `sed` matches. All six live in
 `src/lib/palette.ts` and reach the pre-paint script in `Base.astro` through
 `define:vars`, so the array is not written out by hand there any more.
-`scripts/generate-og.mjs` imports the same file for the card. status.tjh.li
-(a separate repo) keeps a hand-copied duplicate of this array and the same
-day-index formula so the two sites land on the same hue with no cookie or
-cross-origin request; if this palette or formula ever changes, that copy
-needs updating too or the sites will drift apart. The one
+`scripts/generate-og.mjs` imports the same file for the card. The build also
+publishes the active list as `/accent.json` (`src/pages/accent.json.ts`), which
+status.tjh.li (a separate repo) reads server-side and runs through the same
+day-index formula, so the two sites land on the same colour, pinned or daily.
+If the formula ever changes, that repo's copy of it needs updating too. The one
 remaining copy is `--accent-light`/`--accent-dark` in `global.css`, the
 no-JS fallback, because CSS cannot import from TypeScript; it only repeats
 entry zero. Like `content.ts`, `palette.ts` must stay import-free, since the
