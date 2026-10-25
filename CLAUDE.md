@@ -118,7 +118,12 @@ the 404) is marked `data-pond-clear` instead: the water and fish thin out
 toward those areas through a dithered soft edge (`FADE_BAND`) rather than a
 hard cut-out, and the sharks steer around them, so add the attribute to anything
 new that sits on the pond without a pane. The sharks' dorsal ridge uses `--accent`,
-so it follow the daily hue and the theme. It renders one still frame under
+so it follow the daily hue and the theme. For every six sharks (rounded up,
+so one today) a sea turtle swims too, drawn under them: rigid, slow, its
+shell plates in `--accent` with the seams left as gaps, since drawn seam
+lines on a grid this coarse read as scratches. It keeps a minimum size for
+the same reason, shies from sharks and a moving pointer, and ignores the
+food. Walls and clear areas steer both through `shy()`. It renders one still frame under
 `prefers-reduced-motion`. The water surface scrolls at `PARALLAX` times the
 page speed while the sharks stay in viewport space; the sun glints (light)
 ignore the scroll on purpose, since a reflection follows the viewer. The dithered light (moon glow in dark, depth shading in light)
