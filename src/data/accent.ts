@@ -15,4 +15,4 @@
  * Anything else fails the build on purpose, so a typo never goes live: the
  * site keeps the last colour that did.
  */
-export const ACCENT: "daily" | number = "daily";
+export const ACCENT: "daily" | number = 350;
