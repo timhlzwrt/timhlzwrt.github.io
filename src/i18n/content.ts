@@ -146,8 +146,8 @@ const en: Content = {
   hero: {
     role: "Fachinformatiker für Systemintegration",
     employer: "in training at a bank in Stuttgart",
-    pondHint: "Click the water to feed the sharks",
-    pondHintTouch: "Tap the water to feed the sharks",
+    pondHint: "Click the water to feed the sealife",
+    pondHintTouch: "Tap the water to feed the sealife",
   },
   about: {
     heading: "About",
@@ -259,8 +259,8 @@ const de: Content = {
   hero: {
     role: "Fachinformatiker für Systemintegration",
     employer: "in Ausbildung bei einer Bank in Stuttgart",
-    pondHint: "Klick ins Wasser, um die Haie zu füttern",
-    pondHintTouch: "Tipp ins Wasser, um die Haie zu füttern",
+    pondHint: "Klick ins Wasser, um die Meerestiere zu füttern",
+    pondHintTouch: "Tipp ins Wasser, um die Meerestiere zu füttern",
   },
   about: {
     heading: "Über mich",
