@@ -11,8 +11,12 @@
  *            six from the palette are 130 moss, 180 teal, 230 blue,
  *            275 violet, 310 plum and 350 rose, and use their tuned pair;
  *            any other hue gets the same lightness and a muted chroma.
+ *   a hex    like "#800020" keeps that colour's hue and strength. Where it is
+ *            too faint to read on a theme it is darkened (light mode) or
+ *            lightened (dark mode) just enough, so a dark burgundy stays
+ *            itself in light mode and turns a lighter wine red in dark.
  *
  * Anything else fails the build on purpose, so a typo never goes live: the
  * site keeps the last colour that did.
  */
-export const ACCENT: "daily" | number = 350;
+export const ACCENT: "daily" | number | `#${string}` = 350;

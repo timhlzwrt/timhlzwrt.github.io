@@ -195,14 +195,20 @@ light/dark variant chosen to clear 4.5:1 contrast, so it's fixed for the
 whole day rather than re-rolling per page load.
 `src/data/accent.ts` is the switch: `"daily"` keeps that rotation, a hue
 number pins one colour for everyone (a palette hue uses its tuned pair, any
-other gets the palette's lightness and a muted chroma), and anything else
-throws during the build so a typo never deploys. Tim changes it through the
+other gets the palette's lightness and a muted chroma), a hex colour pins that
+colour, and anything else throws during the build so a typo never deploys.
+A hex keeps its own hue and chroma; `fromHex` in `palette.ts` only moves its
+lightness, per theme, as far as it takes to clear 4.5:1 against both the page
+and the pane, and trims chroma to sRGB. Those surfaces are repeated there as
+numbers, so if `--background` or `--card` change in `global.css`, change them
+there too. Tim changes it through the
 *Set accent* workflow (`.github/workflows/accent.yml`, linked from the internal
-dashboard): a dropdown of the six names plus "other hue", which rewrites the
-`ACCENT` line, commits to main and dispatches the deploy (a push made with
-`GITHUB_TOKEN` would not trigger it). Its `case` maps names to hues, so keep
-it in step if a palette hue changes, and keep the `ACCENT` line's exact shape,
-which its `sed` matches. All six live in
+dashboard): a dropdown of the six names plus "custom" (a hex or a hue), which
+rewrites the `ACCENT` line, runs `accentChoices` on it with Node so a bad
+value fails before anything is committed, commits to main and dispatches the
+deploy (a push made with `GITHUB_TOKEN` would not trigger it). Its `case` maps
+names to hues, so keep it in step if a palette hue changes, and keep the
+`ACCENT` line on one line, which its `sed` matches. All six live in
 `src/lib/palette.ts` and reach the pre-paint script in `Base.astro` through
 `define:vars`, so the array is not written out by hand there any more.
 `scripts/generate-og.mjs` imports the same file for the card. The build also

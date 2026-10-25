@@ -18,9 +18,9 @@ on:
           - violet
           - plum
           - rose
-          - other hue
-      hue:
-        description: 'Hue from 0 to 359, only read for "other hue"'
+          - custom
+      custom:
+        description: 'For "custom": a hex colour like #800020, or a hue from 0 to 359'
         type: string
         required: false
 
@@ -45,13 +45,19 @@ jobs:
         with:
           ref: main
 
+      # Node 24 runs src/lib/palette.ts as it is, for the check below.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
       # The hues are those of src/lib/palette.ts, so a name lands on its tuned
-      # pair. Checked here rather than left to the build, so a bad hue fails
-      # this run and never reaches main.
+      # pair. The shape check keeps anything but a number or a hex out of the
+      # file; accentChoices then rejects what the build would (a hue of 400)
+      # so it fails this run and never reaches main, and prints the pair.
       - name: Write src/data/accent.ts
         env:
           COLOUR: ${{ inputs.colour }}
-          HUE: ${{ inputs.hue }}
+          CUSTOM: ${{ inputs.custom }}
         run: |
           case "$COLOUR" in
             daily) value='"daily"' ;;
@@ -61,17 +67,29 @@ jobs:
             violet) value=275 ;;
             plum) value=310 ;;
             rose) value=350 ;;
-            "other hue")
-              if [[ ! "$HUE" =~ ^[0-9]{1,3}$ ]] || (( 10#$HUE > 359 )); then
-                echo "::error::Hue must be a whole number from 0 to 359, got '$HUE'"
+            custom)
+              custom="$(echo "$CUSTOM" | tr -d '[:space:]' | tr 'A-F' 'a-f')"
+              # A bare number is always a hue, so "400" is an error, not #400.
+              if [[ "$custom" =~ ^[0-9]{1,3}$ ]]; then
+                value=$((10#$custom))
+              elif [[ "$custom" =~ ^#?([0-9a-f]{3}|[0-9a-f]{6})$ ]]; then
+                value="\"#${BASH_REMATCH[1]}\""
+              else
+                echo "::error::Custom must be a hex colour like #800020 or a hue from 0 to 359, got '$CUSTOM'"
                 exit 1
-              fi
-              value=$((10#$HUE)) ;;
+              fi ;;
             *) echo "::error::Unknown colour '$COLOUR'"; exit 1 ;;
           esac
-          sed -i -E "s/^(export const ACCENT: \"daily\" \| number = ).*;$/\1$value;/" src/data/accent.ts
-          grep -qxF "export const ACCENT: \"daily\" | number = $value;" src/data/accent.ts \
+          sed -i -E "s/^(export const ACCENT: .* = ).*;$/\1$value;/" src/data/accent.ts
+          grep -qE "^export const ACCENT: .* = $value;$" src/data/accent.ts \
             || { echo "::error::Could not find the ACCENT line in src/data/accent.ts"; exit 1; }
+          result="$(node --input-type=module -e '
+            import { ACCENT } from "./src/data/accent.ts";
+            import { accentChoices } from "./src/lib/palette.ts";
+            const pairs = accentChoices(ACCENT);
+            console.log(pairs.length > 1 ? "daily rotation" : `light ${pairs[0][0]}, dark ${pairs[0][1]}`);
+          ')"
+          echo "$result" | tee -a "$GITHUB_STEP_SUMMARY"
           echo "value=$value" >> "$GITHUB_ENV"
 
       - name: Commit and deploy
