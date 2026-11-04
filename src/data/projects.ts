@@ -44,6 +44,19 @@ export const projects: Project[] = [
     },
   },
   {
+    name: "loge",
+    repo: "loge",
+    status: "shipped",
+    blurb: {
+      en: "A native SwiftUI client for Stremio addons on iPhone, iPad, Apple TV and Mac. Browse movies and series, track episodes and play direct video streams with mpv, with optional Trakt sync for playback progress and watched history.",
+      de: "Ein nativer SwiftUI-Client für Stremio-Addons auf iPhone, iPad, Apple TV und Mac. Filme und Serien durchstöbern, Episoden im Blick behalten und direkte Videostreams mit mpv abspielen, mit optionaler Trakt-Synchronisierung für Wiedergabefortschritt und gesehene Titel.",
+    },
+    links: [
+      { label: { en: "Download", de: "Download" }, href: "https://github.com/timhlzwrt/loge/releases/latest" },
+      { label: SOURCE, href: "https://github.com/timhlzwrt/loge" },
+    ],
+  },
+  {
     name: "Geopolitical Atlas",
     repo: "atlas",
     status: "live",
