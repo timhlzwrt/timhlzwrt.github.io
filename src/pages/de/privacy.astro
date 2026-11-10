@@ -1,0 +1,11 @@
+---
+import Base from "~/layouts/Base.astro";
+import LegalPage from "~/components/LegalPage.astro";
+import { content } from "~/i18n/content";
+
+const text = content.de.privacy;
+---
+
+<Base locale="de" title={text.heading} description={text.body[0]} showNav={false}>
+  <LegalPage locale="de" page="privacy" />
+</Base>

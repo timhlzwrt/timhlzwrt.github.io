@@ -27,7 +27,7 @@ export const NAME_PARTS = [
  * The page's sections, in order. The status bar numbers its tabs from this
  * and each pane shows the same number, so the two cannot disagree.
  */
-export const SECTIONS = ["about", "work", "tools", "privacy", "contact"] as const;
+export const SECTIONS = ["about", "work", "tools", "contact"] as const;
 export type SectionId = (typeof SECTIONS)[number];
 
 export const profile = {
@@ -90,6 +90,16 @@ interface ToolGroup {
   items: string[];
 }
 
+/**
+ * A small page of its own, linked from the footer: the imprint and the
+ * privacy notice. Kept off the home page, where they would interrupt it.
+ */
+interface LegalText {
+  heading: string;
+  body: string[];
+  facts: [string, string][];
+}
+
 interface Content {
   htmlLang: string;
   meta: { title: string; description: string; imageAlt: string };
@@ -106,7 +116,8 @@ interface Content {
   hero: { role: string; employer: string; pondHint: string; pondHintTouch: string };
   about: { heading: string; body: string[] };
   tools: { heading: string; groups: ToolGroup[] };
-  privacy: { heading: string; body: string[]; facts: [string, string][] };
+  imprint: LegalText;
+  privacy: LegalText;
   /**
    * Homelab figures that sit on the water beside the panes, one per gap.
    * The Homelab project says how it runs; these say how much and how fast,
@@ -133,7 +144,7 @@ const en: Content = {
       "Tim Jonas Holzwarth, training as a Fachinformatiker für Systemintegration at a bank in Stuttgart. Python, Linux and a Proxmox homelab.",
     imageAlt: "Tim Jonas Holzwarth, Fachinformatiker für Systemintegration in training, tjh.li",
   },
-  nav: { about: "About", tools: "Tools", privacy: "Privacy", work: "Work", contact: "Contact" },
+  nav: { about: "About", tools: "Tools", work: "Work", contact: "Contact" },
   ui: {
     switchTo: "Deutsch",
     switchLabel: "Switch language to German",
@@ -164,6 +175,19 @@ const en: Content = {
       { label: "Self-hosted", items: ["Home Assistant", "Immich", "Pi-hole", "Gatus"] },
       { label: "In projects", items: ["Astro", "Tailwind", "GitHub Actions", "Renovate"] },
       { label: "Learning now", items: ["Windows Server", "PowerShell", "Network security"] },
+    ],
+  },
+  imprint: {
+    heading: "Imprint",
+    body: [
+      "tjh.li is a private, non-commercial website without ads, payments or accounts.",
+      "Text and design © 2026 Tim Jonas Holzwarth. The source code is public on GitHub under the MIT License.",
+      "The operators of linked sites are responsible for their content. If I learn of an infringement, I remove the link.",
+    ],
+    facts: [
+      ["Name", "Tim Jonas Holzwarth"],
+      ["City", "Stuttgart"],
+      ["Email", "hi@tjh.li"],
     ],
   },
   privacy: {
@@ -246,7 +270,6 @@ const de: Content = {
   nav: {
     about: "Über mich",
     tools: "Werkzeuge",
-    privacy: "Datenschutz",
     work: "Projekte",
     contact: "Kontakt",
   },
@@ -280,6 +303,19 @@ const de: Content = {
       { label: "Selbst gehostet", items: ["Home Assistant", "Immich", "Pi-hole", "Gatus"] },
       { label: "In Projekten", items: ["Astro", "Tailwind", "GitHub Actions", "Renovate"] },
       { label: "Lerne gerade", items: ["Windows Server", "PowerShell", "Netzwerksicherheit"] },
+    ],
+  },
+  imprint: {
+    heading: "Impressum",
+    body: [
+      "tjh.li ist eine private, nicht kommerzielle Website ohne Werbung, Zahlungen oder Konten.",
+      "Texte und Gestaltung © 2026 Tim Jonas Holzwarth. Der Quellcode ist auf GitHub unter der MIT-Lizenz öffentlich.",
+      "Für die Inhalte verlinkter Seiten sind deren Betreiber verantwortlich. Erfahre ich von einem Rechtsverstoß, entferne ich den Link.",
+    ],
+    facts: [
+      ["Name", "Tim Jonas Holzwarth"],
+      ["Ort", "Stuttgart"],
+      ["E-Mail", "hi@tjh.li"],
     ],
   },
   privacy: {

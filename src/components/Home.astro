@@ -178,32 +178,10 @@ const RISE_DELAY = ["[animation-delay:120ms]", "[animation-delay:260ms]", "[anim
   </Section>
   <LabFact {...deploys} class="md:col-span-4 md:col-start-1" />
 
-  {/* ----------------------------------------------------------- privacy */}
-  <Section
-    id="privacy"
-    heading={t.privacy.heading}
-    class="md:col-span-7 md:col-start-2"
-  >
-    <div class="max-w-[62ch] space-y-5 text-[1.0625rem] leading-[1.6] sm:leading-[1.7]">
-      {t.privacy.body.map((paragraph) => <p>{paragraph}</p>)}
-    </div>
-
-    {/* The claims above, as a list you can check against the network tab. */}
-    <dl class="mt-8 divide-y divide-rule border-y border-rule">
-      {
-        t.privacy.facts.map(([term, value]) => (
-          <div class="flex items-baseline justify-between gap-4 py-3">
-            <dt>{term}</dt>
-            <dd class="font-medium">{value}</dd>
-          </div>
-        ))
-      }
-    </dl>
-  </Section>
-  <LabFact {...checks} class="md:col-span-3 md:col-start-10" />
+  <LabFact {...checks} class="md:col-span-3 md:col-start-1" />
 
   {/* ----------------------------------------------------------- contact */}
-  <Section id="contact" heading={t.contact.heading} class="md:col-span-5">
+  <Section id="contact" heading={t.contact.heading} class="md:col-span-5 md:col-start-4">
     <p class="max-w-[54ch] text-[1.0625rem] leading-relaxed">{t.contact.body}</p>
     <ul class="mt-6 space-y-2">
       {
@@ -238,5 +216,5 @@ const RISE_DELAY = ["[animation-delay:120ms]", "[animation-delay:260ms]", "[anim
       }
     </ul>
   </Section>
-  <LabFact {...backups} class="md:col-span-4 md:col-start-8" />
+  <LabFact {...backups} class="md:col-span-4 md:col-start-9" />
 </div>
