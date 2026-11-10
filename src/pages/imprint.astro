@@ -1,0 +1,11 @@
+---
+import Base from "~/layouts/Base.astro";
+import LegalPage from "~/components/LegalPage.astro";
+import { content } from "~/i18n/content";
+
+const text = content.en.imprint;
+---
+
+<Base locale="en" title={text.heading} description={text.body[0]} showNav={false}>
+  <LegalPage locale="en" page="imprint" />
+</Base>

@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tim's personal site (tjh.li, served at the apex; `me.tjh.li` 301s to it). Astro, static output, bilingual
 (English / German). Single-page layout per locale (`#about`, `#work`, `#tools`,
-`#privacy`, `#contact` sections, in the order of `SECTIONS`), no client-side framework, minimal inline JS.
+`#contact` sections, in the order of `SECTIONS`), no client-side framework, minimal inline JS.
+The imprint and privacy notice are small pages of their own (`/imprint/`, `/privacy/`, and
+under `/de/`), linked only from the footer and rendered by `LegalPage.astro`.
 
 ## Commands
 

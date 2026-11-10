@@ -1,0 +1,39 @@
+---
+import Pond from "~/components/Pond.astro";
+import { content, type Locale } from "~/i18n/content";
+
+interface Props {
+  locale: Locale;
+  page: "imprint" | "privacy";
+}
+
+const { locale, page } = Astro.props;
+const text = content[locale][page];
+---
+
+<Pond />
+
+<section data-pond-clear class="w-fit pt-20 sm:pt-28">
+  <h1
+    class="font-display text-[clamp(2.75rem,10vw,5.5rem)] font-extrabold leading-[0.9] tracking-[-0.04em] [font-stretch:125%]"
+  >
+    <span class="initial">{text.heading.charAt(0)}</span>{text.heading.slice(1)}
+  </h1>
+</section>
+
+<div data-pane class="mt-14 max-w-3xl glass rounded-2xl border border-rule/70 px-6 py-8 sm:px-10 sm:py-10">
+  <div class="max-w-[62ch] space-y-5 text-[1.0625rem] leading-[1.6] sm:leading-[1.7]">
+    {text.body.map((paragraph) => <p>{paragraph}</p>)}
+  </div>
+
+  <dl class="mt-8 divide-y divide-rule border-y border-rule">
+    {
+      text.facts.map(([term, value]) => (
+        <div class="flex items-baseline justify-between gap-4 py-3">
+          <dt>{term}</dt>
+          <dd class="text-right font-medium">{value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>
