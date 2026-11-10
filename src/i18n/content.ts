@@ -169,10 +169,13 @@ const en: Content = {
   privacy: {
     heading: "Privacy",
     body: [
-      "This site collects nothing about you. The project data under Work is fetched from GitHub when the site is built, so your browser never contacts GitHub.",
-      "It is hosted on GitHub Pages, and GitHub keeps server logs with IP addresses that I have no access to.",
+      "This site collects nothing about you. The project data under Work is fetched from GitHub when the site is built, so your browser never contacts GitHub for it.",
+      "It is hosted on GitHub Pages behind Cloudflare. To deliver the site and protect it from attacks, both process your IP address, the time, the page requested and your browser details (Art. 6(1)(f) GDPR). Both are certified under the EU-US Data Privacy Framework. I have no access to their logs and keep none myself.",
+      "The status line in the footer is fetched by your browser from status.tjh.li, a status page I run myself.",
+      "You can ask for access to your data, have it corrected or deleted, restrict or object to its processing (Art. 15–21 GDPR) by writing to hi@tjh.li, and complain to a data protection authority, such as Baden-Württemberg's commissioner for data protection.",
     ],
     facts: [
+      ["Responsible", "Tim Jonas Holzwarth, Stuttgart"],
       ["Cookies", "None"],
       ["Analytics", "None"],
       ["Third-party requests", "None"],
@@ -282,10 +285,13 @@ const de: Content = {
   privacy: {
     heading: "Datenschutz",
     body: [
-      "Diese Seite sammelt nichts über dich. Die Projektdaten holt sie beim Bauen von GitHub, dein Browser spricht also nie mit GitHub.",
-      "Gehostet wird sie auf GitHub Pages, und GitHub speichert Server-Logs mit IP-Adressen, auf die ich keinen Zugriff habe.",
+      "Diese Seite sammelt nichts über dich. Die Projektdaten holt sie beim Bauen von GitHub, dein Browser spricht dafür also nie mit GitHub.",
+      "Gehostet wird sie auf GitHub Pages hinter Cloudflare. Um sie auszuliefern und vor Angriffen zu schützen, verarbeiten beide deine IP-Adresse, den Zeitpunkt, die aufgerufene Seite und Angaben zu deinem Browser (Art. 6 Abs. 1 lit. f DSGVO). Beide sind unter dem EU-US Data Privacy Framework zertifiziert. Auf ihre Logs habe ich keinen Zugriff, eigene speichere ich nicht.",
+      "Die Statuszeile im Footer lädt dein Browser von status.tjh.li, einer Statusseite, die ich selbst betreibe.",
+      "Du kannst Auskunft über deine Daten verlangen, sie berichtigen oder löschen lassen und der Verarbeitung widersprechen oder sie einschränken lassen (Art. 15–21 DSGVO). Schreib dafür an hi@tjh.li. Außerdem kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren, etwa beim Landesbeauftragten für den Datenschutz Baden-Württemberg.",
     ],
     facts: [
+      ["Verantwortlich", "Tim Jonas Holzwarth, Stuttgart"],
       ["Cookies", "Keine"],
       ["Analytics", "Keine"],
       ["Anfragen an Dritte", "Keine"],
