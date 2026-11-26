@@ -335,7 +335,9 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
 
       // A section counts as current while it crosses a line 40% down the
       // screen, so exactly one tab is lit at a time. Above the middle, so a
-      // short last section can still reach it on a phone.
+      // short last section can still reach it on a phone. The line is a
+      // hair thick rather than zero, since Ladybird never reports anything
+      // as intersecting a zero-height root.
       const sectionNav = document.getElementById("section-nav");
       const observer = new IntersectionObserver(
         (entries) => {
@@ -352,7 +354,7 @@ const nav = SECTIONS.map((id) => ({ id, label: t.nav[id] }));
             }
           }
         },
-        { rootMargin: "-40% 0px -60% 0px" },
+        { rootMargin: "-40% 0px -59.9% 0px" },
       );
       tabs.forEach((_, id) => {
         const section = id && document.getElementById(id);
